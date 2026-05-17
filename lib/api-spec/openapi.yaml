@@ -17,6 +17,8 @@ tags:
     description: Campaign management
   - name: dashboard
     description: Dashboard summary data
+  - name: questionnaire
+    description: Wedding music questionnaire
 paths:
   /healthz:
     get:
@@ -683,4 +685,31 @@ components:
         campaignName:
           type: ["string", "null"]
         createdAt:
+          type: string
+
+    QuestionnaireSubmitInput:
+      type: object
+      required: [brautpaar, formData]
+      properties:
+        brautpaar:
+          type: string
+        datum:
+          type: string
+        location:
+          type: string
+        formData:
+          type: object
+          additionalProperties: true
+
+    QuestionnaireSubmitResult:
+      type: object
+      required: [success, id]
+      properties:
+        success:
+          type: boolean
+        id:
+          type: integer
+        emailSent:
+          type: boolean
+        message:
           type: string

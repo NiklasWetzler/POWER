@@ -23,6 +23,8 @@ const GAST_ALTER = [
 
 function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean }) {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedAlter, setSelectedAlter] = useState<string[]>([]);
   const [eröffnungstanz, setEröffnungstanz] = useState<string | null>(null);
@@ -37,7 +39,7 @@ function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean }) {
   const [dsgvo3, setDsgvo3] = useState(false);
   const [dsgvoError, setDsgvoError] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, getValues, formState: { errors } } = useForm();
 
   const allDsgvo = dsgvo1 && dsgvo2 && dsgvo3;
 
@@ -50,13 +52,54 @@ function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean }) {
   const toggleEröffnungTyp = (t: string) =>
     setEröffnungTyp((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (!allDsgvo) {
       setDsgvoError(true);
       return;
     }
     setDsgvoError(false);
-    setSubmitted(true);
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const values = getValues();
+
+    // Collect checkbox states that aren't tracked by react-hook-form
+    const formData: Record<string, unknown> = {
+      ...values,
+      selectedGenres,
+      selectedAlter,
+      eröffnungstanz,
+      eröffnungTyp,
+      sektempfangMusik,
+      essensMusik,
+      gästeWünsche,
+      lautstärke,
+      technikVorhanden,
+    };
+
+    try {
+      const res = await fetch("/api/questionnaire/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brautpaar: values.brautpaar || "",
+          datum: values.datum || undefined,
+          location: values.location || undefined,
+          formData,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error || "Fehler beim Senden.");
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Ein unbekannter Fehler ist aufgetreten.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -392,14 +435,20 @@ function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean }) {
           </CardContent>
         </Card>
 
+        {submitError && (
+          <div className="rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive" data-testid="submit-error">
+            {submitError}
+          </div>
+        )}
+
         <Button
           type="submit"
           size="lg"
-          disabled={!allDsgvo}
+          disabled={!allDsgvo || submitting}
           className="w-full"
           data-testid="button-submit"
         >
-          Fragebogen absenden
+          {submitting ? "Wird gesendet …" : "Fragebogen absenden"}
         </Button>
       </form>
     </div>
