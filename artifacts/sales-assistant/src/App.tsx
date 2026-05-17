@@ -11,6 +11,7 @@ import Prospects from "@/pages/Prospects";
 import ProspectDetail from "@/pages/ProspectDetail";
 import Emails from "@/pages/Emails";
 import Compose from "@/pages/Compose";
+import Fragebogen from "@/pages/Fragebogen";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ function Router() {
         <Route path="/campaigns/:id" component={CampaignDetail} />
         <Route path="/compose" component={Compose} />
         <Route path="/emails" component={Emails} />
+        <Route path="/fragebogen" component={Fragebogen} />
         <Route component={NotFound} />
       </Switch>
     </Shell>

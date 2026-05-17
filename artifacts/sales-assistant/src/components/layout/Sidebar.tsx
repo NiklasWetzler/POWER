@@ -5,7 +5,8 @@ import {
   Users, 
   Send, 
   Target, 
-  PenSquare
+  PenSquare,
+  ClipboardList,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -19,8 +20,12 @@ export function Sidebar() {
     { href: "/compose", label: "Compose Draft", icon: PenSquare },
   ];
 
+  const extraItems = [
+    { href: "/fragebogen", label: "Online Fragebogen", icon: ClipboardList },
+  ];
+
   return (
-    <aside className="w-64 border-r border-border bg-sidebar h-full flex flex-col hidden md:flex">
+    <aside className="w-64 border-r border-border bg-sidebar h-full flex flex-col flex-shrink-0">
       <div className="p-6 border-b border-sidebar-border h-16 flex items-center">
         <div className="flex items-center gap-2 text-sidebar-primary">
           <div className="w-8 h-8 rounded bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold">
@@ -33,17 +38,16 @@ export function Sidebar() {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
-          
           return (
             <Link key={item.href} href={item.href}>
               <div
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-md transition-all group cursor-pointer",
-                  isActive 
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                 )}
-                data-testid={`nav-link-${item.label.toLowerCase()}`}
+                data-testid={`nav-link-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
               >
                 <Icon className={cn("w-4 h-4", isActive ? "text-sidebar-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground/70")} />
                 {item.label}
@@ -51,6 +55,29 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        <div className="pt-3 mt-3 border-t border-sidebar-border/50">
+          {extraItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+            return (
+              <Link key={item.href} href={item.href}>
+                <div
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md transition-all group cursor-pointer",
+                    isActive
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                  )}
+                  data-testid={`nav-link-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                >
+                  <Icon className={cn("w-4 h-4", isActive ? "text-sidebar-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground/70")} />
+                  {item.label}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
       <div className="p-4 border-t border-sidebar-border">
         <div className="flex items-center gap-3 px-3 py-2">
