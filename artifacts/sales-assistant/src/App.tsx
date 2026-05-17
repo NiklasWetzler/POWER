@@ -17,26 +17,64 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1
-    }
-  }
+      retry: 1,
+    },
+  },
 });
 
 function Router() {
   return (
-    <Shell>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/prospects" component={Prospects} />
-        <Route path="/prospects/:id" component={ProspectDetail} />
-        <Route path="/campaigns" component={Campaigns} />
-        <Route path="/campaigns/:id" component={CampaignDetail} />
-        <Route path="/compose" component={Compose} />
-        <Route path="/emails" component={Emails} />
-        <Route path="/fragebogen" component={Fragebogen} />
-        <Route component={NotFound} />
-      </Switch>
-    </Shell>
+    <Switch>
+      {/* Public customer-facing route — no Shell, no sidebar */}
+      <Route path="/" component={Fragebogen} />
+
+      {/* Internal admin routes — wrapped in Shell with sidebar */}
+      <Route path="/dashboard">
+        <Shell>
+          <Dashboard />
+        </Shell>
+      </Route>
+      <Route path="/prospects/:id">
+        {(params) => (
+          <Shell>
+            <ProspectDetail />
+          </Shell>
+        )}
+      </Route>
+      <Route path="/prospects">
+        <Shell>
+          <Prospects />
+        </Shell>
+      </Route>
+      <Route path="/campaigns/:id">
+        {() => (
+          <Shell>
+            <CampaignDetail />
+          </Shell>
+        )}
+      </Route>
+      <Route path="/campaigns">
+        <Shell>
+          <Campaigns />
+        </Shell>
+      </Route>
+      <Route path="/compose">
+        <Shell>
+          <Compose />
+        </Shell>
+      </Route>
+      <Route path="/emails">
+        <Shell>
+          <Emails />
+        </Shell>
+      </Route>
+      <Route path="/fragebogen">
+        <Shell>
+          <Fragebogen isAdminView />
+        </Shell>
+      </Route>
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 

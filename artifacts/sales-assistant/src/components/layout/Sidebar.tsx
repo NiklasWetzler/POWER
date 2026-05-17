@@ -13,7 +13,7 @@ export function Sidebar() {
   const [location] = useLocation();
 
   const navItems = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/prospects", label: "Prospects", icon: Users },
     { href: "/campaigns", label: "Campaigns", icon: Target },
     { href: "/emails", label: "Emails", icon: Send },
@@ -37,7 +37,7 @@ export function Sidebar() {
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+          const isActive = location === item.href || location.startsWith(item.href + "/");
           return (
             <Link key={item.href} href={item.href}>
               <div

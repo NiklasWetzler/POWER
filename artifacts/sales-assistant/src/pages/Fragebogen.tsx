@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ClipboardList, CheckCircle } from "lucide-react";
+import { ClipboardList, CheckCircle, Music2 } from "lucide-react";
 
 const GENRES = [
   "Pop", "Rock", "Charts / Aktuelles", "Oldies (60er–80er)", "90er / 2000er",
@@ -21,7 +21,7 @@ const GAST_ALTER = [
   { id: "50plus", label: "50+" },
 ];
 
-export default function Fragebogen() {
+function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean }) {
   const [submitted, setSubmitted] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedAlter, setSelectedAlter] = useState<string[]>([]);
@@ -60,7 +60,7 @@ export default function Fragebogen() {
   };
 
   if (submitted) {
-    return (
+    const content = (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-6 animate-in fade-in duration-500">
         <CheckCircle className="w-16 h-16 text-green-500" />
         <div>
@@ -74,19 +74,33 @@ export default function Fragebogen() {
         </Button>
       </div>
     );
+    if (!isAdminView) {
+      return (
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
+          <div className="flex flex-col items-center gap-2 mb-8">
+            <Music2 className="w-8 h-8 text-amber-500" />
+            <span className="text-xl font-semibold tracking-wide text-gray-800">NIWE Weddings</span>
+          </div>
+          {content}
+        </div>
+      );
+    }
+    return content;
   }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl">
-      <div className="flex items-center gap-3">
-        <ClipboardList className="w-6 h-6 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Online Fragebogen</h1>
-          <p className="text-muted-foreground mt-1">
-            Bitte möglichst vollständig ausfüllen – je mehr wir wissen, desto besser wird eure musikalische Hochzeitsreise!
-          </p>
+      {isAdminView && (
+        <div className="flex items-center gap-3">
+          <ClipboardList className="w-6 h-6 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Online Fragebogen</h1>
+            <p className="text-muted-foreground mt-1">
+              Bitte möglichst vollständig ausfüllen – je mehr wir wissen, desto besser wird eure musikalische Hochzeitsreise!
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
@@ -388,6 +402,41 @@ export default function Fragebogen() {
           Fragebogen absenden
         </Button>
       </form>
+    </div>
+  );
+}
+
+export default function Fragebogen({ isAdminView = false }: { isAdminView?: boolean }) {
+  if (isAdminView) {
+    return <FragebogenForm isAdminView />;
+  }
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Public header — clean, no sales branding */}
+      <header className="border-b border-gray-100 bg-white sticky top-0 z-10">
+        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
+          <Music2 className="w-6 h-6 text-amber-500" />
+          <span className="text-lg font-semibold tracking-wide text-gray-800">NIWE Weddings</span>
+          <span className="ml-auto text-sm text-gray-400">Musikfragebogen</span>
+        </div>
+      </header>
+
+      <main className="flex-1 px-4 py-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Musikfragebogen</h1>
+            <p className="text-gray-500 mt-2 text-sm">
+              Bitte möglichst vollständig ausfüllen – je mehr wir wissen, desto besser wird eure musikalische Hochzeitsreise!
+            </p>
+          </div>
+          <FragebogenForm isAdminView={false} />
+        </div>
+      </main>
+
+      <footer className="border-t border-gray-100 py-6 text-center text-xs text-gray-400">
+        NIWE Weddings · NIWE Events · info@niwe-events.com
+      </footer>
     </div>
   );
 }
