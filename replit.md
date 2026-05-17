@@ -1,10 +1,11 @@
-# [Project name]
+# SalesCockpit — AI Sales Assistant
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+An AI-powered sales assistant for small SaaS companies that drafts personalized outreach emails to prospects and tracks campaign performance.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port from workflow)
+- `pnpm --filter @workspace/sales-assistant run dev` — run the frontend (port from workflow)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -14,6 +15,7 @@ _Replace the heading above with the project's name, and this line with one sente
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React + Vite, TanStack Query, wouter, shadcn/ui, Tailwind CSS v4
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
@@ -22,15 +24,27 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — API contract (source of truth)
+- `lib/db/src/schema/` — DB schema (campaigns, prospects, emails, activity)
+- `artifacts/api-server/src/routes/` — Express route handlers
+- `artifacts/sales-assistant/src/pages/` — Frontend pages
+- `artifacts/sales-assistant/src/components/` — UI components + layout Shell/Sidebar
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- AI email generation is rule-based (tone templates + prospect data), no external LLM required on first build
+- Activity feed auto-logs key events (prospect added, email drafted, email sent, reply received)
+- Prospects automatically move to "contacted" status when their first email is sent
+- Reply rate is stored and computed as a percentage (0–100), not a decimal (0–1)
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Dashboard** — pipeline health overview: prospect/email stats, recent activity feed, pipeline by status
+- **Prospects** — manage prospect list with add/edit/delete, search, and status filtering
+- **Prospect Detail** — full info + email history + quick generate button
+- **Campaigns** — group prospects into campaigns, track per-campaign performance
+- **Compose Draft** — select a prospect + tone + optional context, generate AI-personalized email, edit and send
+- **Emails** — inbox view of all drafts/sent emails, filter by status
 
 ## User preferences
 
@@ -38,7 +52,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After changing DB schema, run `pnpm run typecheck:libs` to rebuild declarations before typechecking API server
+- Date fields from Drizzle return `Date` objects — serialize to `.toISOString()` before Zod parsing when schema expects `string`
+- Reply rate is a percentage (e.g. 33.3), not a decimal — do not multiply by 100 in the frontend
 
 ## Pointers
 

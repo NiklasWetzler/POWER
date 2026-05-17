@@ -1,0 +1,269 @@
+Erstelle eine hochwertige mobile Web-App für einen digitalen Hochzeits-Musikfragebogen für unsere Hochzeits- & DJ-Agentur „NIWE Weddings“.
+
+WICHTIG:
+Der digitale Fragebogen muss den hochgeladenen Papierbogen optisch und inhaltlich 1:1 exakt übernehmen.
+
+KEINE Änderungen.
+KEINE modernen Umformulierungen.
+KEINE zusätzlichen Fragen.
+KEINE gekürzten Inhalte.
+
+Alle Fragen, Checkboxen, Linien, Reihenfolgen und Antwortmöglichkeiten müssen exakt wie im Original übernommen werden.
+
+DESIGN:
+- Eleganter Hochzeitsstil
+- Weißer Hintergrund
+- Schwarze Schrift
+- Goldene Akzente
+- Serifenschriften für Überschriften
+- Mobile First
+- Premium-Look
+- Exakt wie hochwertiger gedruckter Hochzeitsfragebogen
+
+FUNKTIONEN:
+- Online ausfüllbar per Smartphone
+- Automatische Zwischenspeicherung
+- PDF-Download
+- Automatischer E-Mail-Versand an info@niwe-events.com
+- PDF-Anhang in der E-Mail
+- Adminbereich zum Einsehen aller Formulare
+- DSGVO-konform
+
+BETREFF DER E-MAIL:
+„Neuer Musikfragebogen – [Name Brautpaar]“
+
+PDF:
+Die PDF muss exakt wie der Originalbogen aussehen:
+- gleiche Struktur
+- gleiche Checkboxen
+- gleiche Reihenfolge
+- gleiche Seitenaufteilung
+- gleiche Überschriften
+- gleiche Linien
+- gleiche Fragen
+- gleiche Seitennummerierung
+
+FORMULARINHALT:
+
+--------------------------------------------------
+MUSIKFRAGEBOGEN
+--------------------------------------------------
+
+Bitte möglichst vollständig ausfüllen – je mehr wir wissen, desto besser wird eure musikalische Hochzeitsreise!
+
+--------------------------------------------------
+1. ALLGEMEINE ANGABEN
+--------------------------------------------------
+
+Name des Brautpaares:
+________________________________
+
+Datum der Hochzeit:
+________________________________
+
+Location / Veranstaltungsort:
+________________________________
+
+Anzahl der Gäste:
+________________________________
+
+Durchschnittsalter der Gäste:
+
+☐ unter 20  
+☐ 20–35  
+☐ 35–50  
+☐ 50+  
+
+Wie ist die Altersverteilung der Gäste?
+________________________________
+
+--------------------------------------------------
+2. MUSIKGESCHMACK & GENREVORLIEBEN
+--------------------------------------------------
+
+Welche Musikrichtungen mögt ihr besonders?
+
+☐ Pop  
+☐ Rock  
+☐ Charts / Aktuelles  
+☐ Oldies (60er–80er)  
+☐ 90er / 2000er  
+☐ Hip-Hop / R’n’B  
+☐ House / EDM  
+☐ Schlager  
+☐ Disco / Funk  
+☐ Soul / Motown  
+☐ Jazz / Swing  
+☐ Klassik  
+☐ Volksmusik  
+☐ Internationale Musik  
+☐ Sonstiges  
+
+Welche Musikrichtungen sollen vermieden werden?
+________________________________
+
+Lieblingssongs oder Lieblingskünstler (max. 5):
+________________________________
+
+________________________________
+
+________________________________
+
+________________________________
+
+________________________________
+
+Welche Songs oder Künstler dürfen auf keinen Fall gespielt werden?
+________________________________
+
+--------------------------------------------------
+3. MUSIKVERLAUF DER FEIER
+--------------------------------------------------
+
+Musik beim Sektempfang?
+
+☐ Ja  
+☐ Nein  
+
+Wenn ja, welcher Stil?
+________________________________
+
+Musik beim Essen?
+
+☐ Ja  
+☐ Nein  
+
+Wenn ja, welcher Stil?
+________________________________
+
+Eröffnungstanz gewünscht?
+
+☐ Ja  
+☐ Nein  
+
+Songtitel:
+________________________________
+
+☐ Choreografie  
+☐ Klassischer Hochzeitstanz  
+
+Musik zu besonderen Programmpunkten:
+
+Einzug:
+________________________________
+
+Torte:
+________________________________
+
+Brautstraußwurf:
+________________________________
+
+Sonstige Programmpunkte:
+________________________________
+
+Dürfen Gäste Musikwünsche äußern?
+
+☐ Ja  
+☐ Nein  
+☐ Nur passende Wünsche  
+
+--------------------------------------------------
+4. TECHNIK & ABLAUF
+--------------------------------------------------
+
+Ab wann soll Musik gespielt werden?
+________________________________
+
+Ab wann darf aufgebaut werden?
+________________________________
+
+Bis wann darf Musik laufen?
+________________________________
+
+Gibt es Lautstärkeregeln?
+
+☐ Ja  
+☐ Nein  
+
+Wenn ja:
+________________________________
+
+Ist Technik vorhanden?
+
+☐ Ja  
+☐ Nein  
+
+Besonderheiten zur Location:
+________________________________
+
+Strom:
+________________________________
+
+Aufbau:
+________________________________
+
+Musikanschlüsse:
+________________________________
+
+Bühne:
+________________________________
+
+--------------------------------------------------
+5. WEITERE HINWEISE & WÜNSCHE
+--------------------------------------------------
+
+Besondere Wünsche für den musikalischen Ablauf:
+________________________________
+
+________________________________
+
+________________________________
+
+Sonstige Hinweise oder Anregungen:
+________________________________
+
+________________________________
+
+________________________________
+
+--------------------------------------------------
+DATENSCHUTZ & EINVERSTÄNDNIS
+--------------------------------------------------
+
+Diese 3 Checkboxen sind Pflichtfelder.
+
+☐ Ich bin damit einverstanden, dass meine angegebenen Daten zur Bearbeitung des Musikfragebogens und zur Vorbereitung unserer Hochzeit von NIWE Weddings / NIWE Events gespeichert und verarbeitet werden.
+
+☐ Ich bin damit einverstanden, dass der ausgefüllte Musikfragebogen per E-Mail an info@niwe-events.com übermittelt wird.
+
+☐ Ich bestätige, dass alle Angaben freiwillig und nach bestem Wissen gemacht wurden.
+
+Der „Absenden“-Button darf erst aktiv werden, wenn alle 3 Datenschutz-Checkboxen aktiviert wurden.
+
+Falls nicht alle Checkboxen ausgewählt wurden:
+Fehlermeldung anzeigen:
+„Bitte bestätigt alle Datenschutz- und Einverständniserklärungen.“
+
+Erst wenn alle 3 Checkboxen aktiviert sind:
+- „Absenden“-Button aktivieren
+- Formular absendbar machen
+- PDF erstellen
+- E-Mail an info@niwe-events.com versenden
+- PDF speichern
+- PDF-Download anzeigen
+
+--------------------------------------------------
+ABSCHLUSS
+--------------------------------------------------
+
+Nach erfolgreichem Absenden erscheint:
+„Vielen Dank! Euer Musikfragebogen wurde erfolgreich übermittelt. Ihr könnt eure PDF-Kopie hier herunterladen.“
+
+Zusätzlich:
+- Speicherung im Adminbereich
+- Statusverwaltung:
+  - Offen
+  - In Bearbeitung
+  - Abgeschlossen
+
+Die App soll wie eine luxuriöse Premium-Hochzeitsagentur-Software wirken.
