@@ -309,7 +309,7 @@ function EditCustomerModal({ customer, onClose }: { customer: Customer; onClose:
             </div>
             <div className="space-y-1 sm:col-span-2">
               <Label>Hochzeitslocation</Label>
-              <Input value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })} placeholder="z. B. Waldvogel Leipheim" />
+              <Input value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })} placeholder="z. B. Restaurant Ulm" />
             </div>
           </div>
 
@@ -606,7 +606,7 @@ export default function Kunden() {
               </div>
               <div className="space-y-1 sm:col-span-2">
                 <Label>Hochzeitslocation</Label>
-                <Input value={createForm.location} onChange={(e) => setCF("location", e.target.value)} placeholder="z. B. Waldvogel Leipheim" />
+                <Input value={createForm.location} onChange={(e) => setCF("location", e.target.value)} placeholder="z. B. Restaurant Ulm" />
               </div>
               <div className="sm:col-span-2 border-t border-gray-200 pt-3 mt-1">
                 <p className="text-xs font-semibold text-gray-700 mb-2">DJ-Vertrag (optional — kann später angepasst werden)</p>

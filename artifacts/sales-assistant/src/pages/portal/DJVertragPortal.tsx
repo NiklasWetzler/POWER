@@ -511,7 +511,7 @@ export default function DJVertragPortal() {
               </div>
               <div className="space-y-1 sm:col-span-2">
                 <Label>Hochzeitslocation</Label>
-                <Input value={form.veranstaltungsort} onChange={(e) => setField("veranstaltungsort", e.target.value)} placeholder="z. B. Waldvogel Leipheim" />
+                <Input value={form.veranstaltungsort} onChange={(e) => setField("veranstaltungsort", e.target.value)} placeholder="z. B. Restaurant Ulm" />
               </div>
               <div className="space-y-1 sm:col-span-2">
                 <Label>Datum der Hochzeit</Label>
