@@ -42,7 +42,26 @@ export function useAuthProvider(): AuthContextValue {
 
   useEffect(() => { void check(); }, []);
 
-  const login = () => setAuth({ loggedIn: true, loading: false });
+  const login = () => {
+    // Mark briefing as pending and snapshot "since" timestamp so the modal can
+    // show "what's new since your last login" on every fresh admin login.
+    try {
+      const prev = window.localStorage.getItem("niwe.admin.lastSeenBriefing");
+      const since =
+        prev ??
+        (() => {
+          const d = new Date();
+          d.setHours(0, 0, 0, 0);
+          d.setDate(d.getDate() - 1);
+          return d.toISOString();
+        })();
+      window.sessionStorage.setItem("niwe.admin.briefingSince", since);
+      window.sessionStorage.setItem("niwe.admin.briefingPending", "1");
+    } catch {
+      /* ignore storage errors */
+    }
+    setAuth({ loggedIn: true, loading: false });
+  };
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });

@@ -31,15 +31,9 @@ interface Briefing {
   }[];
 }
 
-const STORAGE_KEY = "niwe.admin.briefingLastShown";
-
-function todayKey(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
+const LAST_SEEN_KEY = "niwe.admin.lastSeenBriefing";
+const PENDING_KEY = "niwe.admin.briefingPending";
+const SINCE_KEY = "niwe.admin.briefingSince";
 
 function formatTime(iso: string | null): string {
   if (!iso) return "—";
@@ -60,28 +54,32 @@ export function AdminDailyBriefing() {
   const [open, setOpen] = useState(false);
   const [, navigate] = useLocation();
 
-  // Decide whether to show today
+  // Show whenever a fresh admin login flagged a briefing as pending.
   useEffect(() => {
     try {
-      const last = window.localStorage.getItem(STORAGE_KEY);
-      if (last !== todayKey()) setOpen(true);
+      if (window.sessionStorage.getItem(PENDING_KEY) === "1") setOpen(true);
     } catch {
-      setOpen(true);
+      /* ignore */
     }
   }, []);
 
-  // Compute once per mount so the query key is stable across renders.
+  // Snapshot "since" once per mount so the query key is stable across renders.
   const sinceParam = useMemo(() => {
     try {
-      const last = window.localStorage.getItem(STORAGE_KEY);
-      if (last) {
-        const d = new Date(`${last}T00:00:00`);
+      const fromSession = window.sessionStorage.getItem(SINCE_KEY);
+      if (fromSession) {
+        const d = new Date(fromSession);
+        if (!Number.isNaN(d.getTime())) return d.toISOString();
+      }
+      const fromLocal = window.localStorage.getItem(LAST_SEEN_KEY);
+      if (fromLocal) {
+        const d = new Date(fromLocal);
         if (!Number.isNaN(d.getTime())) return d.toISOString();
       }
     } catch {
       /* ignore */
     }
-    // Floor to start-of-day 24h ago so the key is stable within the same day.
+    // Fallback: yesterday at start of day.
     const fallback = new Date();
     fallback.setHours(0, 0, 0, 0);
     fallback.setDate(fallback.getDate() - 1);
@@ -102,7 +100,9 @@ export function AdminDailyBriefing() {
 
   function dismiss() {
     try {
-      window.localStorage.setItem(STORAGE_KEY, todayKey());
+      window.localStorage.setItem(LAST_SEEN_KEY, new Date().toISOString());
+      window.sessionStorage.removeItem(PENDING_KEY);
+      window.sessionStorage.removeItem(SINCE_KEY);
     } catch {
       /* ignore */
     }
@@ -134,7 +134,7 @@ export function AdminDailyBriefing() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] uppercase tracking-[0.2em] text-amber-100">
-              Guten Tag — euer Briefing
+              Was ist neu seit eurem letzten Besuch?
             </p>
             <h2 className="text-lg font-bold leading-tight">
               {new Date().toLocaleDateString("de-DE", {
