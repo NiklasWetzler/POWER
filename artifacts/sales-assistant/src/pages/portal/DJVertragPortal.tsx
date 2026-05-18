@@ -370,13 +370,18 @@ export default function DJVertragPortal() {
     const canvas = canvasRef.current;
     if (!canvas || loading) return;
 
-    function resizeCanvas() {
+    let lastWidth = 0;
+    let isDrawing = false;
+
+    function resizeCanvas(force = false) {
       if (!canvas) return;
-      // Preserve existing strokes across resize (mobile address bar etc.)
-      const data = sigPadRef.current?.toData();
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      if (isDrawing) return; // never resize mid-stroke
       const rect = canvas.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
+      if (!force && Math.abs(rect.width - lastWidth) < 1) return; // width unchanged → skip
+      lastWidth = rect.width;
+      const data = sigPadRef.current?.toData();
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
       canvas.width = rect.width * ratio;
       canvas.height = rect.height * ratio;
       const ctx = canvas.getContext("2d");
@@ -393,13 +398,23 @@ export default function DJVertragPortal() {
       throttle: 0,
       minDistance: 1,
     });
-    // Use rAF so the canvas has its real layout size before we read it
-    requestAnimationFrame(resizeCanvas);
-    window.addEventListener("resize", resizeCanvas);
-    window.addEventListener("orientationchange", resizeCanvas);
+
+    const onBegin = () => { isDrawing = true; };
+    const onEnd = () => { isDrawing = false; };
+    sigPadRef.current.addEventListener("beginStroke", onBegin);
+    sigPadRef.current.addEventListener("endStroke", onEnd);
+
+    // Initial sizing after layout
+    requestAnimationFrame(() => resizeCanvas(true));
+
+    const onResize = () => resizeCanvas(false);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
     return () => {
-      window.removeEventListener("resize", resizeCanvas);
-      window.removeEventListener("orientationchange", resizeCanvas);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+      sigPadRef.current?.removeEventListener("beginStroke", onBegin);
+      sigPadRef.current?.removeEventListener("endStroke", onEnd);
       sigPadRef.current?.off();
     };
   }, [loading]);
@@ -416,12 +431,18 @@ export default function DJVertragPortal() {
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    function resizeCanvas() {
+    let lastWidth = 0;
+    let isDrawing = false;
+
+    function resizeCanvas(force = false) {
       if (!canvas) return;
-      const data = fsPadRef.current?.toData();
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      if (isDrawing) return;
       const rect = canvas.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
+      if (!force && Math.abs(rect.width - lastWidth) < 1) return;
+      lastWidth = rect.width;
+      const data = fsPadRef.current?.toData();
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
       canvas.width = rect.width * ratio;
       canvas.height = rect.height * ratio;
       const ctx = canvas.getContext("2d");
@@ -439,9 +460,14 @@ export default function DJVertragPortal() {
       minDistance: 1,
     });
 
+    const onBegin = () => { isDrawing = true; };
+    const onEnd = () => { isDrawing = false; };
+    fsPadRef.current.addEventListener("beginStroke", onBegin);
+    fsPadRef.current.addEventListener("endStroke", onEnd);
+
     // Defer to rAF so the overlay has finished layout before we size the canvas
     requestAnimationFrame(() => {
-      resizeCanvas();
+      resizeCanvas(true);
       // Preload existing signature from inline pad, if any
       if (sigPadRef.current && !sigPadRef.current.isEmpty()) {
         const data = sigPadRef.current.toDataURL("image/png");
@@ -456,9 +482,14 @@ export default function DJVertragPortal() {
       }
     });
 
-    window.addEventListener("resize", resizeCanvas);
+    const onResize = () => resizeCanvas(false);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
     return () => {
-      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+      fsPadRef.current?.removeEventListener("beginStroke", onBegin);
+      fsPadRef.current?.removeEventListener("endStroke", onEnd);
       fsPadRef.current?.off();
       fsPadRef.current = null;
       document.body.style.overflow = prevOverflow;
