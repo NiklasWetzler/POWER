@@ -7,6 +7,9 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
+// Trust the Replit reverse proxy so secure cookies work over HTTPS in production
+app.set("trust proxy", 1);
+
 app.use(
   pinoHttp({
     logger,
