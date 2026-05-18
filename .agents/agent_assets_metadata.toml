@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "uOzveBDFSfOe_em4a5Mhb"
+uri = "file://attached_assets/generated/dj_vertrag_test.pdf"
+type = "pdf"
+title = "DJ-Aufführungsvertrag (Test mit Beispieldaten)"
