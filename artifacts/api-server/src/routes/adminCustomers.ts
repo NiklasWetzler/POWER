@@ -22,6 +22,7 @@ router.post("/admin/customers", async (req, res): Promise<void> => {
   const {
     name, email, angebotsnummer, hochzeitsdatum,
     telefon, strasse, plz, ort, location,
+    djKuenstler, djGage,
   } = req.body as {
     name?: string;
     email?: string;
@@ -32,6 +33,8 @@ router.post("/admin/customers", async (req, res): Promise<void> => {
     plz?: string;
     ort?: string;
     location?: string;
+    djKuenstler?: string;
+    djGage?: string;
   };
 
   if (!name || !email || !angebotsnummer) {
@@ -53,6 +56,8 @@ router.post("/admin/customers", async (req, res): Promise<void> => {
           plz: plz?.trim() || null,
           ort: ort?.trim() || null,
           location: location?.trim() || null,
+          djKuenstler: djKuenstler?.trim() || null,
+          djGage: djGage?.trim() || null,
         })
         .returning();
       if (c && DEFAULT_ASSIGNED_FORMS.length > 0) {

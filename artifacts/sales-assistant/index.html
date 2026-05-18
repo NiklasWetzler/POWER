@@ -1,24 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>AI Sales Assistant</title>
-    <meta name="description" content="AI Sales Assistant — built on Replit. Update this description to reflect the app." />
-    <meta name="robots" content="index, follow" />
-    <meta property="og:title" content="AI Sales Assistant" />
-    <meta property="og:description" content="AI Sales Assistant — built on Replit. Update this description to reflect the app." />
+    <meta name="theme-color" content="#0f172a" />
+
+    <title>NIWE Weddings — DJ & Hochzeitsplanung Portal | NIWE Events</title>
+    <meta name="description" content="NIWE Weddings App — das digitale Kundenportal von NIWE Events für eure Hochzeit. Musikfragebogen, DJ-Vertrag und Hochzeits­planung an einem Ort. Hochzeits-DJ aus Achstetten für Süddeutschland." />
+    <meta name="keywords" content="NIWE Weddings, NIWE Events, Hochzeits DJ, Hochzeitsplanung, DJ Achstetten, DJ Biberach, DJ Ulm, Hochzeitsportal, Musikfragebogen, DJ Vertrag, Brautpaar Portal" />
+    <meta name="author" content="NIWE Events — Niklas Wetzler" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://niweweddingsapp.de/" />
+
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NIWE Weddings" />
+    <meta property="og:title" content="NIWE Weddings — DJ & Hochzeitsplanung Portal" />
+    <meta property="og:description" content="Das digitale Kundenportal von NIWE Events für eure Hochzeit. Musikfragebogen, DJ-Vertrag und Planung an einem Ort." />
+    <meta property="og:url" content="https://niweweddingsapp.de/" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:image" content="https://niweweddingsapp.de/opengraph.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="NIWE Weddings — Hochzeitsportal von NIWE Events" />
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AI Sales Assistant" />
-    <meta name="twitter:description" content="AI Sales Assistant — built on Replit. Update this description to reflect the app." />
+    <meta name="twitter:title" content="NIWE Weddings — DJ & Hochzeitsplanung Portal" />
+    <meta name="twitter:description" content="Das digitale Kundenportal von NIWE Events für eure Hochzeit." />
+    <meta name="twitter:image" content="https://niweweddingsapp.de/opengraph.jpg" />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- JSON-LD: Organization + LocalBusiness -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "@id": "https://niweweddingsapp.de/#organization",
+      "name": "NIWE Events",
+      "alternateName": "NIWE Weddings",
+      "description": "Hochzeits-DJ und Hochzeitsplanung aus Achstetten. Digitales Kundenportal für Brautpaare.",
+      "url": "https://niweweddingsapp.de/",
+      "email": "wetzler@niwe-events.com",
+      "founder": "Niklas Wetzler",
+      "image": "https://niweweddingsapp.de/opengraph.jpg",
+      "logo": "https://niweweddingsapp.de/favicon.svg",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Quellenweg 1",
+        "postalCode": "88480",
+        "addressLocality": "Achstetten",
+        "addressCountry": "DE"
+      },
+      "areaServed": [
+        { "@type": "Place", "name": "Baden-Württemberg" },
+        { "@type": "Place", "name": "Bayern" }
+      ],
+      "priceRange": "€€",
+      "serviceType": ["Hochzeits-DJ", "Hochzeitsplanung", "Event-DJ"]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "url": "https://niweweddingsapp.de/",
+      "name": "NIWE Weddings",
+      "inLanguage": "de-DE",
+      "publisher": { "@id": "https://niweweddingsapp.de/#organization" }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="padding:2rem;font-family:sans-serif;text-align:center">
+        <h1>NIWE Weddings</h1>
+        <p>Bitte aktiviert JavaScript, um das Hochzeitsportal von NIWE Events nutzen zu können.</p>
+        <p>Kontakt: <a href="mailto:wetzler@niwe-events.com">wetzler@niwe-events.com</a></p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

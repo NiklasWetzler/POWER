@@ -1,2 +1,8 @@
 User-agent: *
-Allow: /
+Allow: /$
+Allow: /login
+Disallow: /portal/
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://niweweddingsapp.de/sitemap.xml

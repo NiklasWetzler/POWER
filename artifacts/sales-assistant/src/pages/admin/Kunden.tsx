@@ -479,6 +479,7 @@ export default function Kunden() {
   const [createForm, setCreateForm] = useState({
     name: "", email: "", angebotsnummer: "", hochzeitsdatum: "",
     telefon: "", strasse: "", plz: "", ort: "", location: "",
+    djKuenstler: "Nik Wetzler", djGage: "",
   });
   const [showForm, setShowForm] = useState(false);
   const [messageCustomer, setMessageCustomer] = useState<Customer | null>(null);
@@ -513,6 +514,7 @@ export default function Kunden() {
       setCreateForm({
         name: "", email: "", angebotsnummer: "", hochzeitsdatum: "",
         telefon: "", strasse: "", plz: "", ort: "", location: "",
+        djKuenstler: "Nik Wetzler", djGage: "",
       });
       setShowForm(false);
       toast({ title: "Kundenkonto erstellt" });
@@ -605,6 +607,17 @@ export default function Kunden() {
               <div className="space-y-1 sm:col-span-2">
                 <Label>Hochzeitslocation</Label>
                 <Input value={createForm.location} onChange={(e) => setCF("location", e.target.value)} placeholder="z. B. Waldvogel Leipheim" />
+              </div>
+              <div className="sm:col-span-2 border-t border-gray-200 pt-3 mt-1">
+                <p className="text-xs font-semibold text-gray-700 mb-2">DJ-Vertrag (optional — kann später angepasst werden)</p>
+              </div>
+              <div className="space-y-1">
+                <Label>DJ / Künstler</Label>
+                <Input value={createForm.djKuenstler} onChange={(e) => setCF("djKuenstler", e.target.value)} placeholder="z. B. Nik Wetzler" />
+              </div>
+              <div className="space-y-1">
+                <Label>Gesamtgage (netto)</Label>
+                <Input value={createForm.djGage} onChange={(e) => setCF("djGage", e.target.value)} placeholder="z. B. 1.300,00 €" />
               </div>
               <div className="sm:col-span-2 flex gap-2 pt-1">
                 <Button type="submit" disabled={createMutation.isPending}>
