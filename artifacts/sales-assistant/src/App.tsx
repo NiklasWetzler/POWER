@@ -12,6 +12,7 @@ import ProspectDetail from "@/pages/ProspectDetail";
 import Emails from "@/pages/Emails";
 import Compose from "@/pages/Compose";
 import Fragebogen from "@/pages/Fragebogen";
+import FragebogenAdmin from "@/pages/FragebogenAdmin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,7 +27,7 @@ function Router() {
   return (
     <Switch>
       {/* Public customer-facing route — no Shell, no sidebar */}
-      <Route path="/" component={Fragebogen} />
+      <Route path="/">{() => <Fragebogen />}</Route>
 
       {/* Internal admin routes — wrapped in Shell with sidebar */}
       <Route path="/dashboard">
@@ -70,7 +71,7 @@ function Router() {
       </Route>
       <Route path="/fragebogen">
         <Shell>
-          <Fragebogen isAdminView />
+          <FragebogenAdmin />
         </Shell>
       </Route>
       <Route component={NotFound} />

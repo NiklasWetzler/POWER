@@ -687,6 +687,35 @@ components:
         createdAt:
           type: string
 
+    QuestionnaireSubmission:
+      type: object
+      required: [id, brautpaar, status, emailSent, createdAt]
+      properties:
+        id:
+          type: integer
+        brautpaar:
+          type: string
+        datum:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [open, in_progress, done]
+        emailSent:
+          type: string
+        createdAt:
+          type: string
+
+    QuestionnaireSendLinkInput:
+      type: object
+      required: [brautpaarName, email]
+      properties:
+        brautpaarName:
+          type: string
+        email:
+          type: string
+
     QuestionnaireSubmitInput:
       type: object
       required: [brautpaar, formData]
