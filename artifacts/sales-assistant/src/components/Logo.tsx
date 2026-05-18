@@ -40,18 +40,7 @@ export function Logo({ size = "sm", variant = "default", className }: LogoProps)
   );
 
   if (variant === "hero") {
-    return (
-      <div className={cn("inline-flex flex-col items-center gap-2", className)}>
-        {img}
-        <div className="flex items-center gap-3 -mt-1">
-          <span className="h-px w-12 bg-gradient-to-r from-transparent to-amber-400/70" />
-          <span className="text-[10px] tracking-[0.45em] uppercase text-amber-600/80 font-medium">
-            Hochzeitsportal
-          </span>
-          <span className="h-px w-12 bg-gradient-to-l from-transparent to-amber-400/70" />
-        </div>
-      </div>
-    );
+    return <div className={cn("inline-flex", className)}>{img}</div>;
   }
 
   return <div className={cn("inline-flex", className)}>{img}</div>;
