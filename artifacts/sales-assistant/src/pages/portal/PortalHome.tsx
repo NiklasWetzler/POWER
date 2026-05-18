@@ -132,27 +132,29 @@ function SubmissionsSection() {
     <div className="space-y-2">
       {submissions.map((s) => (
         <Card key={s.id} className="border-gray-200">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-              <FileText className="w-4 h-4 text-gray-500" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm text-gray-900">Musikfragebogen</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Eingereicht: {new Date(s.createdAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-              <StatusBadge status={s.status} />
-              {s.adminConfirmed ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">
-                  <CheckCircle2 className="w-3 h-3" />Bestätigt
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border bg-gray-50 text-gray-500 border-gray-200">
-                  <Clock className="w-3 h-3" />Ausstehend
-                </span>
-              )}
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <FileText className="w-4 h-4 text-gray-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm text-gray-900">Musikfragebogen</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Eingereicht: {new Date(s.createdAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                </p>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <StatusBadge status={s.status} />
+                  {s.adminConfirmed ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">
+                      <CheckCircle2 className="w-3 h-3" />Bestätigt
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border bg-gray-50 text-gray-500 border-gray-200">
+                      <Clock className="w-3 h-3" />Ausstehend
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -206,6 +208,7 @@ export default function PortalHome() {
 
       {/* Nice to know — eigene Seite */}
       <section className="space-y-3 pt-2">
+        <h2 className="text-base font-semibold text-gray-800">Gut zu wissen</h2>
         <Link href="/portal/nice-to-know">
           <NiceToKnowHomeCard />
         </Link>
