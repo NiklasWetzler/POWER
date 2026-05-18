@@ -25,6 +25,7 @@ import PortalHome from "@/pages/portal/PortalHome";
 import Formulare from "@/pages/portal/Formulare";
 import UebermittelteFormulare from "@/pages/portal/UebermittelteFormulare";
 import MusikFragebogenPortal from "@/pages/portal/MusikFragebogenPortal";
+import Eingang from "@/pages/portal/Eingang";
 
 // Admin pages
 import FragebogenAdmin from "@/pages/FragebogenAdmin";
@@ -114,6 +115,9 @@ function Router() {
       </Route>
       <Route path="/portal/eingereicht">
         {() => <CustomerRoute><UebermittelteFormulare /></CustomerRoute>}
+      </Route>
+      <Route path="/portal/eingang">
+        {() => <CustomerRoute><Eingang /></CustomerRoute>}
       </Route>
       <Route path="/portal">
         {() => <CustomerRoute><PortalHome /></CustomerRoute>}

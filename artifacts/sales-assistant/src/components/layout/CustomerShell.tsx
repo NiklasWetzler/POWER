@@ -1,18 +1,30 @@
 import { Link, useLocation } from "wouter";
-import { Music2, Home, FileText, Inbox, LogOut } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Music2, Home, FileText, Inbox, Mail, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
 
-const navItems: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean }[] = [
+const navItems: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; key?: string }[] = [
   { href: "/portal", label: "Startseite", icon: Home, exact: true },
+  { href: "/portal/eingang", label: "Eingang", icon: Mail, key: "eingang" },
   { href: "/portal/formulare", label: "Formulare", icon: FileText },
-  { href: "/portal/eingereicht", label: "Übermittelte Formulare", icon: Inbox },
+  { href: "/portal/eingereicht", label: "Übermittelte", icon: Inbox },
 ];
 
 export function CustomerShell({ children, onLogout }: { children: React.ReactNode; onLogout: () => void }) {
   const [location] = useLocation();
   const { customer } = useCustomerAuth();
+  const { data: unread } = useQuery<{ count: number }>({
+    queryKey: ["customer-unread-count"],
+    queryFn: async () => {
+      const res = await fetch("/api/customer/messages/unread-count", { credentials: "include" });
+      if (!res.ok) return { count: 0 };
+      return res.json() as Promise<{ count: number }>;
+    },
+    refetchInterval: 30000,
+  });
+  const unreadCount = unread?.count ?? 0;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -27,17 +39,25 @@ export function CustomerShell({ children, onLogout }: { children: React.ReactNod
           </div>
 
           <nav className="flex-1 flex items-center gap-1 ml-4">
-            {navItems.map(({ href, label, icon: Icon, exact }) => {
+            {navItems.map(({ href, label, icon: Icon, exact, key }) => {
               const isActive = exact ? location === href : (location === href || location.startsWith(href + "/"));
+              const showBadge = key === "eingang" && unreadCount > 0;
               return (
                 <Link key={href} href={href}>
                   <div className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer",
+                    "relative flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer",
                     isActive
                       ? "bg-amber-50 text-amber-700"
                       : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                   )}>
-                    <Icon className="w-4 h-4 shrink-0" />
+                    <div className="relative">
+                      <Icon className="w-4 h-4 shrink-0" />
+                      {showBadge && (
+                        <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </div>
                     <span className="hidden sm:inline">{label}</span>
                   </div>
                 </Link>

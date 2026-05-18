@@ -1,4 +1,5 @@
 export * from "./customers";
+export * from "./customerMessages";
 export * from "./campaigns";
 export * from "./prospects";
 export * from "./emails";

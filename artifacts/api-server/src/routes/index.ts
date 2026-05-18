@@ -10,6 +10,7 @@ import authRouter from "./auth";
 import customerAuthRouter from "./customerAuth";
 import customerPortalRouter from "./customerPortal";
 import adminCustomersRouter from "./adminCustomers";
+import customerMessagesRouter from "./customerMessages";
 import { requireAdmin } from "../lib/authMiddleware";
 
 const router: IRouter = Router();
@@ -22,6 +23,9 @@ router.use(questionnairePublicRouter);
 
 // ── Customer portal (customer session required) ────────────
 router.use(customerPortalRouter);
+
+// ── Mixed (per-route customer + admin auth via middleware) ─
+router.use(customerMessagesRouter);
 
 // ── Admin (admin session required) ────────────────────────
 router.use(requireAdmin);
