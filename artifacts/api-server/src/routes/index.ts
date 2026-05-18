@@ -10,6 +10,7 @@ import authRouter from "./auth";
 import customerAuthRouter from "./customerAuth";
 import customerPortalRouter from "./customerPortal";
 import adminCustomersRouter from "./adminCustomers";
+import adminBriefingRouter from "./adminBriefing";
 import customerMessagesRouter from "./customerMessages";
 import chatRouter from "./chat";
 import appointmentsRouter from "./appointments";
@@ -39,5 +40,6 @@ router.use(campaignsRouter);
 router.use(dashboardRouter);
 router.use(questionnaireAdminRouter);
 router.use(adminCustomersRouter);
+router.use(adminBriefingRouter);
 
 export default router;

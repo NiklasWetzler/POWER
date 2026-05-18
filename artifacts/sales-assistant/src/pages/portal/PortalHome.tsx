@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Music2, FileText, ChevronRight, CheckCircle2, Clock, Circle, Inbox, MessageCircle, CalendarDays } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
+import { NiceToKnow } from "@/components/portal/NiceToKnow";
 
 // ── Countdown ─────────────────────────────────────────────────────────────────
 function Countdown({ datum }: { datum: string }) {
@@ -202,6 +203,9 @@ export default function PortalHome() {
         </div>
         <SubmissionsSection />
       </section>
+
+      {/* Nice to know */}
+      <NiceToKnow />
 
       {/* Fragen / Kontakt — unten als ruhige CTA */}
       <section className="space-y-3 pt-2">

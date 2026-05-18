@@ -13,6 +13,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { AdminDailyBriefing } from "@/components/AdminDailyBriefing";
 
 const navItems: { href: string; label: string; icon: typeof Users; badgeKey?: "kontakt" }[] = [
   { href: "/admin/fragebogen", label: "Fragebögen", icon: ClipboardList },
@@ -186,6 +187,7 @@ export function AdminShell({
         onToggle={toggle}
       />
       <main className="flex-1 overflow-y-auto">{children}</main>
+      <AdminDailyBriefing />
     </div>
   );
 }
