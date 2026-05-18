@@ -19,6 +19,8 @@ function createTransport() {
     port,
     secure: port === 465,
     auth: { user, pass },
+    authMethod: "LOGIN",
+    tls: { rejectUnauthorized: false },
   });
 }
 
