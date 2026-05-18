@@ -17,6 +17,7 @@ import { CustomerShell } from "@/components/layout/CustomerShell";
 import Landing from "@/pages/Landing";
 import Fragebogen from "@/pages/Fragebogen";
 import AdminLogin from "@/pages/AdminLogin";
+import Impressum from "@/pages/Impressum";
 
 // Customer portal pages
 import PortalHome from "@/pages/portal/PortalHome";
@@ -95,6 +96,9 @@ function Router() {
     <Switch>
       {/* Public — NIWE WEDDINGS APP landing + customer login */}
       <Route path="/">{() => <LandingRoute />}</Route>
+
+      {/* Legal */}
+      <Route path="/impressum">{() => <Impressum />}</Route>
 
       {/* Legacy public questionnaire link (send-link emails go here) */}
       <Route path="/fragebogen-oeffentlich">{() => <Fragebogen />}</Route>

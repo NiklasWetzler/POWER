@@ -149,8 +149,11 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
         </div>
       </div>
 
-      <footer className="border-t border-gray-100 py-5 text-center text-xs text-gray-400">
-        NIWE Weddings · NIWE Events · info@niwe-events.com
+      <footer className="border-t border-gray-100 py-5 text-center text-xs text-gray-400 space-x-3">
+        <span>NIWE Weddings · NIWE Events · info@niwe-events.com</span>
+        <Link href="/impressum">
+          <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">Impressum</span>
+        </Link>
       </footer>
     </div>
   );

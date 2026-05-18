@@ -67,8 +67,11 @@ export function CustomerShell({ children, onLogout }: { children: React.ReactNod
         </div>
       </main>
 
-      <footer className="border-t border-gray-200 py-4 text-center text-xs text-gray-400">
-        NIWE Weddings · NIWE Events · info@niwe-events.com
+      <footer className="border-t border-gray-200 py-4 text-center text-xs text-gray-400 space-x-3">
+        <span>NIWE Weddings · NIWE Events · info@niwe-events.com</span>
+        <Link href="/impressum">
+          <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">Impressum</span>
+        </Link>
       </footer>
     </div>
   );
