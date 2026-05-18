@@ -123,10 +123,6 @@ export const NICE_TO_KNOW_TOPICS: Topic[] = [
           Ein <strong>kurzer Sektempfang mit Hintergrundmusik</strong> (instrumental, ca. 60
           dB) lockert die Stimmung, ohne den Smalltalk zu stören.
         </li>
-        <li>
-          <strong>Wunschlieder von Gästen</strong> sind jederzeit willkommen — wir bauen sie
-          passend zur Stimmung ein, damit der rote Faden des Abends erhalten bleibt.
-        </li>
       </ul>
     ),
   },
