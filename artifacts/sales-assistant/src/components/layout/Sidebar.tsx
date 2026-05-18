@@ -1,15 +1,17 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Send, 
-  Target, 
+import {
+  LayoutDashboard,
+  Users,
+  Send,
+  Target,
   PenSquare,
   ClipboardList,
+  LogOut,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export function Sidebar() {
+export function Sidebar({ onLogout }: { onLogout?: () => void }) {
   const [location] = useLocation();
 
   const navItems = [
@@ -34,6 +36,7 @@ export function Sidebar() {
           <span className="font-bold text-lg text-sidebar-foreground tracking-tight">SalesCockpit</span>
         </div>
       </div>
+
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -79,16 +82,28 @@ export function Sidebar() {
           })}
         </div>
       </nav>
-      <div className="p-4 border-t border-sidebar-border">
+
+      <div className="p-4 border-t border-sidebar-border space-y-2">
         <div className="flex items-center gap-3 px-3 py-2">
           <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-xs font-medium border border-sidebar-border">
-            ME
+            NW
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-sidebar-foreground">Top Performer</span>
-            <span className="text-xs text-sidebar-foreground/50">Sales Rep</span>
+            <span className="text-sm font-medium text-sidebar-foreground">NIWEWorker</span>
+            <span className="text-xs text-sidebar-foreground/50">Admin</span>
           </div>
         </div>
+        {onLogout && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+            onClick={onLogout}
+          >
+            <LogOut className="w-4 h-4" />
+            Abmelden
+          </Button>
+        )}
       </div>
     </aside>
   );

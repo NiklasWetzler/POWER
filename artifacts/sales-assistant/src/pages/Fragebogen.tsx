@@ -485,6 +485,8 @@ export default function Fragebogen({ isAdminView = false }: { isAdminView?: bool
 
       <footer className="border-t border-gray-100 py-6 text-center text-xs text-gray-400">
         NIWE Weddings · NIWE Events · info@niwe-events.com
+        <span className="mx-2">·</span>
+        <a href="/login" className="hover:text-gray-600 transition-colors">Admin</a>
       </footer>
     </div>
   );
