@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { Music2, FileText, ChevronRight, CheckCircle2, Clock, Circle, Inbox, MessageCircle, CalendarDays } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
-import { NiceToKnow } from "@/components/portal/NiceToKnow";
+import { NiceToKnowHomeCard } from "@/components/portal/NiceToKnow";
 
 // ── Countdown ─────────────────────────────────────────────────────────────────
 function Countdown({ datum }: { datum: string }) {
@@ -22,7 +22,7 @@ function Countdown({ datum }: { datum: string }) {
     sub = "Eure Hochzeit hat bereits stattgefunden.";
   } else if (diff === 0) {
     label = "Heute ist es soweit!";
-    sub = "Alles Gute zu eurer Hochzeit! 🎉";
+    sub = "Wir wünschen euch einen unvergesslichen Tag.";
     urgent = true;
   } else if (diff === 1) {
     label = "Noch 1 Tag";
@@ -204,8 +204,12 @@ export default function PortalHome() {
         <SubmissionsSection />
       </section>
 
-      {/* Nice to know */}
-      <NiceToKnow />
+      {/* Nice to know — eigene Seite */}
+      <section className="space-y-3 pt-2">
+        <Link href="/portal/nice-to-know">
+          <NiceToKnowHomeCard />
+        </Link>
+      </section>
 
       {/* Fragen / Kontakt — unten als ruhige CTA */}
       <section className="space-y-3 pt-2">

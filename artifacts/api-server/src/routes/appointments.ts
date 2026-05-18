@@ -44,7 +44,7 @@ async function createInboxConfirmation(
   const dateStr = formatDe(finalAt);
   const body =
     `Euer Termin mit NIWE Weddings wurde bestätigt:\n\n` +
-    `📅 ${dateStr}\n\n` +
+    `Termin: ${dateStr}\n\n` +
     `Ihr könnt den Termin mit dem Button unten direkt in euren Kalender übernehmen.\n\n` +
     `Eine Erinnerung erhaltet ihr 1 Tag und 1 Stunde vor dem Termin hier im Posteingang.\n\n` +
     `Wir freuen uns auf euch!\n— NIWE Weddings`;

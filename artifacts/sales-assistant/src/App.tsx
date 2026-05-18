@@ -29,6 +29,7 @@ import MusikFragebogenPortal from "@/pages/portal/MusikFragebogenPortal";
 import DJVertragPortal from "@/pages/portal/DJVertragPortal";
 import Eingang from "@/pages/portal/Eingang";
 import Kontakt from "@/pages/portal/Kontakt";
+import NiceToKnowPage from "@/pages/portal/NiceToKnow";
 
 // Admin pages
 import FragebogenAdmin from "@/pages/FragebogenAdmin";
@@ -129,6 +130,9 @@ function Router() {
       </Route>
       <Route path="/portal/kontakt">
         {() => <CustomerRoute><Kontakt /></CustomerRoute>}
+      </Route>
+      <Route path="/portal/nice-to-know">
+        {() => <CustomerRoute><NiceToKnowPage /></CustomerRoute>}
       </Route>
       <Route path="/portal">
         {() => <CustomerRoute><PortalHome /></CustomerRoute>}
