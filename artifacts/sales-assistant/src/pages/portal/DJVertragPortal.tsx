@@ -372,13 +372,17 @@ export default function DJVertragPortal() {
 
     function resizeCanvas() {
       if (!canvas) return;
+      // Preserve existing strokes across resize (mobile address bar etc.)
+      const data = sigPadRef.current?.toData();
       const ratio = Math.max(window.devicePixelRatio || 1, 1);
       const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
       canvas.width = rect.width * ratio;
       canvas.height = rect.height * ratio;
       const ctx = canvas.getContext("2d");
       ctx?.scale(ratio, ratio);
       sigPadRef.current?.clear();
+      if (data && data.length > 0) sigPadRef.current?.fromData(data);
     }
 
     sigPadRef.current = new SignaturePad(canvas, {
@@ -392,8 +396,10 @@ export default function DJVertragPortal() {
     // Use rAF so the canvas has its real layout size before we read it
     requestAnimationFrame(resizeCanvas);
     window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("orientationchange", resizeCanvas);
     return () => {
       window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("orientationchange", resizeCanvas);
       sigPadRef.current?.off();
     };
   }, [loading]);
@@ -412,13 +418,16 @@ export default function DJVertragPortal() {
 
     function resizeCanvas() {
       if (!canvas) return;
+      const data = fsPadRef.current?.toData();
       const ratio = Math.max(window.devicePixelRatio || 1, 1);
       const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
       canvas.width = rect.width * ratio;
       canvas.height = rect.height * ratio;
       const ctx = canvas.getContext("2d");
       ctx?.scale(ratio, ratio);
       fsPadRef.current?.clear();
+      if (data && data.length > 0) fsPadRef.current?.fromData(data);
     }
 
     fsPadRef.current = new SignaturePad(canvas, {
