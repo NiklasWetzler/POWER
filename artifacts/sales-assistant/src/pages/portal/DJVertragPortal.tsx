@@ -332,6 +332,7 @@ export default function DJVertragPortal() {
   const [submitted, setSubmitted] = useState<{ id: number; downloadUrl: string } | null>(null);
   const [dj, setDj] = useState<DjContract | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [agbAccepted, setAgbAccepted] = useState(false);
 
   const fsCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const fsPadRef = useRef<SignaturePad | null>(null);
@@ -517,6 +518,15 @@ export default function DJVertragPortal() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!agbAccepted) {
+      toast({
+        title: "Zustimmung fehlt",
+        description:
+          "Bitte bestätigt die Vertragsbedingungen sowie AGB und Widerrufsbelehrung, um den Vertrag zu unterschreiben.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!sigPadRef.current || sigPadRef.current.isEmpty()) {
       toast({
         title: "Unterschrift fehlt",
@@ -664,6 +674,47 @@ export default function DJVertragPortal() {
             Übermittlung als PDF zum Download.
           </div>
 
+          {/* Pflicht-Checkbox: Vertragsbedingungen + AGB + Widerruf */}
+          <section className="space-y-3">
+            <h2 className="font-semibold text-sm uppercase tracking-wider text-gray-500">
+              Bestätigung *
+            </h2>
+            <label
+              htmlFor="agb-accept"
+              className={`flex items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
+                agbAccepted
+                  ? "border-emerald-300 bg-emerald-50"
+                  : "border-amber-300 bg-white hover:bg-amber-50/60"
+              }`}
+            >
+              <input
+                id="agb-accept"
+                type="checkbox"
+                required
+                checked={agbAccepted}
+                onChange={(e) => setAgbAccepted(e.target.checked)}
+                className="mt-0.5 h-5 w-5 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer flex-shrink-0"
+              />
+              <div className="text-sm text-gray-700 leading-6">
+                <p className="font-medium text-gray-900">
+                  Ich habe die Vertragsbedingungen gelesen und stimme diesen vollumfänglich zu.
+                </p>
+                <p className="mt-1">
+                  Ich habe zudem die{" "}
+                  <Link href="/agb">
+                    <span className="underline underline-offset-2 text-amber-700 hover:text-amber-800 cursor-pointer">
+                      AGB und die Widerrufsbelehrung
+                    </span>
+                  </Link>{" "}
+                  gelesen und akzeptiere diese. Ich stimme ausdrücklich zu, dass NIWE Events
+                  vor Ablauf der Widerrufsfrist mit der Ausführung der Dienstleistung beginnt.
+                  Mir ist bekannt, dass mein Widerrufsrecht gemäß § 356 Abs. 4 BGB bei
+                  vollständiger Vertragserfüllung erlischt.
+                </p>
+              </div>
+            </label>
+          </section>
+
           {/* Signature */}
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-2">
@@ -704,7 +755,7 @@ export default function DJVertragPortal() {
           </section>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="submit" disabled={submitting} className="gap-2">
+            <Button type="submit" disabled={submitting || !agbAccepted} className="gap-2">
               <FileSignature className="w-4 h-4" />
               {submitting ? "Wird übermittelt…" : "Vertrag rechtsgültig unterschreiben"}
             </Button>

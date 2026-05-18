@@ -159,6 +159,9 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
         <Link href="/datenschutz">
           <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">Datenschutz</span>
         </Link>
+        <Link href="/agb">
+          <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">AGB &amp; Widerruf</span>
+        </Link>
       </footer>
     </div>
   );

@@ -19,6 +19,7 @@ import Fragebogen from "@/pages/Fragebogen";
 import AdminLogin from "@/pages/AdminLogin";
 import Impressum from "@/pages/Impressum";
 import Datenschutz from "@/pages/Datenschutz";
+import AGB from "@/pages/AGB";
 
 // Customer portal pages
 import PortalHome from "@/pages/portal/PortalHome";
@@ -103,6 +104,7 @@ function Router() {
       {/* Legal */}
       <Route path="/impressum">{() => <Impressum />}</Route>
       <Route path="/datenschutz">{() => <Datenschutz />}</Route>
+      <Route path="/agb">{() => <AGB />}</Route>
 
       {/* Legacy public questionnaire link (send-link emails go here) */}
       <Route path="/fragebogen-oeffentlich">{() => <Fragebogen />}</Route>
