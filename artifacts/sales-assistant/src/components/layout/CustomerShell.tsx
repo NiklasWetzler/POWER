@@ -1,10 +1,11 @@
 import { Link, useLocation } from "wouter";
-import { Music2, FileText, Inbox, LogOut } from "lucide-react";
+import { Music2, Home, FileText, Inbox, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
 
-const navItems = [
+const navItems: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean }[] = [
+  { href: "/portal", label: "Startseite", icon: Home, exact: true },
   { href: "/portal/formulare", label: "Formulare", icon: FileText },
   { href: "/portal/eingereicht", label: "Übermittelte Formulare", icon: Inbox },
 ];
@@ -26,8 +27,8 @@ export function CustomerShell({ children, onLogout }: { children: React.ReactNod
           </div>
 
           <nav className="flex-1 flex items-center gap-1 ml-4">
-            {navItems.map(({ href, label, icon: Icon }) => {
-              const isActive = location === href || location.startsWith(href + "/");
+            {navItems.map(({ href, label, icon: Icon, exact }) => {
+              const isActive = exact ? location === href : (location === href || location.startsWith(href + "/"));
               return (
                 <Link key={href} href={href}>
                   <div className={cn(

@@ -1,9 +1,10 @@
 import { useState, useEffect, createContext, useContext } from "react";
 
-interface CustomerInfo {
+export interface CustomerInfo {
   id: number;
   name: string;
   email: string;
+  hochzeitsdatum: string | null;
 }
 
 interface CustomerAuthState {

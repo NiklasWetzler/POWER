@@ -19,6 +19,7 @@ import Fragebogen from "@/pages/Fragebogen";
 import AdminLogin from "@/pages/AdminLogin";
 
 // Customer portal pages
+import PortalHome from "@/pages/portal/PortalHome";
 import Formulare from "@/pages/portal/Formulare";
 import UebermittelteFormulare from "@/pages/portal/UebermittelteFormulare";
 import MusikFragebogenPortal from "@/pages/portal/MusikFragebogenPortal";
@@ -68,7 +69,7 @@ function LandingRoute() {
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    if (!cLoading && customerLoggedIn) navigate("/portal/formulare");
+    if (!cLoading && customerLoggedIn) navigate("/portal");
   }, [customerLoggedIn, cLoading, navigate]);
 
   if (cLoading || customerLoggedIn) return null;
@@ -109,7 +110,7 @@ function Router() {
         {() => <CustomerRoute><UebermittelteFormulare /></CustomerRoute>}
       </Route>
       <Route path="/portal">
-        {() => { const [, nav] = useLocation(); useEffect(() => nav("/portal/formulare"), []); return null; }}
+        {() => <CustomerRoute><PortalHome /></CustomerRoute>}
       </Route>
 
       {/* Admin login */}

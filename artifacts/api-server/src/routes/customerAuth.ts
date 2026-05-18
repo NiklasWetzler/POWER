@@ -28,7 +28,15 @@ router.post("/customer/login", async (req, res): Promise<void> => {
       res.status(500).json({ error: "Session konnte nicht gespeichert werden." });
       return;
     }
-    res.json({ success: true, customer: { id: customer.id, name: customer.name, email: customer.email } });
+    res.json({
+      success: true,
+      customer: {
+        id: customer.id,
+        name: customer.name,
+        email: customer.email,
+        hochzeitsdatum: customer.hochzeitsdatum ?? null,
+      },
+    });
   });
 });
 
@@ -47,7 +55,12 @@ router.get("/customer/me", async (req, res): Promise<void> => {
   }
 
   const [customer] = await db
-    .select({ id: customersTable.id, name: customersTable.name, email: customersTable.email })
+    .select({
+      id: customersTable.id,
+      name: customersTable.name,
+      email: customersTable.email,
+      hochzeitsdatum: customersTable.hochzeitsdatum,
+    })
     .from(customersTable)
     .where(eq(customersTable.id, customerId));
 

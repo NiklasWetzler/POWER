@@ -12,6 +12,7 @@ router.get("/admin/customers", async (_req, res): Promise<void> => {
       name: customersTable.name,
       email: customersTable.email,
       angebotsnummer: customersTable.angebotsnummer,
+      hochzeitsdatum: customersTable.hochzeitsdatum,
       createdAt: customersTable.createdAt,
     })
     .from(customersTable)
@@ -22,10 +23,11 @@ router.get("/admin/customers", async (_req, res): Promise<void> => {
 
 // POST /admin/customers — create a new customer account
 router.post("/admin/customers", async (req, res): Promise<void> => {
-  const { name, email, angebotsnummer } = req.body as {
+  const { name, email, angebotsnummer, hochzeitsdatum } = req.body as {
     name?: string;
     email?: string;
     angebotsnummer?: string;
+    hochzeitsdatum?: string;
   };
 
   if (!name || !email || !angebotsnummer) {
@@ -36,10 +38,15 @@ router.post("/admin/customers", async (req, res): Promise<void> => {
   try {
     const [customer] = await db
       .insert(customersTable)
-      .values({ name, email: email.toLowerCase().trim(), angebotsnummer: angebotsnummer.trim() })
+      .values({
+        name,
+        email: email.toLowerCase().trim(),
+        angebotsnummer: angebotsnummer.trim(),
+        hochzeitsdatum: hochzeitsdatum?.trim() || null,
+      })
       .returning();
 
-    res.status(201).json({ ...customer, createdAt: customer!.createdAt.toISOString() });
+    res.status(201).json({ ...customer!, createdAt: customer!.createdAt.toISOString() });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "";
     if (msg.includes("unique")) {

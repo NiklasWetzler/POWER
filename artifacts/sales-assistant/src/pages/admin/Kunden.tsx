@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Plus, Trash2, Mail } from "lucide-react";
+import { Users, Plus, Trash2, Mail, Calendar } from "lucide-react";
 
 interface Customer {
   id: number;
   name: string;
   email: string;
   angebotsnummer: string;
+  hochzeitsdatum: string | null;
   createdAt: string;
 }
 
@@ -22,6 +23,7 @@ export default function Kunden() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [angebotsnummer, setAngebotsnummer] = useState("");
+  const [hochzeitsdatum, setHochzeitsdatum] = useState("");
   const [showForm, setShowForm] = useState(false);
 
   const { data: customers = [], isLoading } = useQuery<Customer[]>({
@@ -39,7 +41,7 @@ export default function Kunden() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ name, email, angebotsnummer }),
+        body: JSON.stringify({ name, email, angebotsnummer, hochzeitsdatum: hochzeitsdatum || undefined }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({})) as { error?: string };
@@ -49,9 +51,9 @@ export default function Kunden() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
-      setName(""); setEmail(""); setAngebotsnummer("");
+      setName(""); setEmail(""); setAngebotsnummer(""); setHochzeitsdatum("");
       setShowForm(false);
-      toast({ title: "Kundenkonto erstellt" });
+      toast({ title: "Kundenkonto erstellt", description: `Zugang für ${name} wurde angelegt.` });
     },
     onError: (err) => {
       toast({ title: "Fehler", description: err instanceof Error ? err.message : "Unbekannt.", variant: "destructive" });
@@ -68,11 +70,13 @@ export default function Kunden() {
     },
   });
 
-  const handleCreate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !email.trim() || !angebotsnummer.trim()) return;
-    createMutation.mutate();
-  };
+  function daysUntil(datum: string | null): string | null {
+    if (!datum) return null;
+    const diff = Math.ceil((new Date(datum).getTime() - Date.now()) / 86400000);
+    if (diff < 0) return "vergangen";
+    if (diff === 0) return "heute!";
+    return `in ${diff} Tagen`;
+  }
 
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
@@ -92,30 +96,58 @@ export default function Kunden() {
 
       {/* Create form */}
       {showForm && (
-        <Card>
+        <Card className="border-amber-200 bg-amber-50/40">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Neues Kundenkonto anlegen</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleCreate} className="flex flex-wrap gap-3 items-end">
-              <div className="flex-1 min-w-[160px] space-y-1">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" placeholder="Julia & Markus Müller" value={name}
-                  onChange={(e) => setName(e.target.value)} required />
+            <form
+              onSubmit={(e) => { e.preventDefault(); createMutation.mutate(); }}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            >
+              <div className="space-y-1">
+                <Label htmlFor="name">Name des Brautpaares *</Label>
+                <Input
+                  id="name"
+                  placeholder="z. B. Julia & Markus Müller"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
               </div>
-              <div className="flex-1 min-w-[200px] space-y-1">
-                <Label htmlFor="email">E-Mail</Label>
-                <Input id="email" type="email" placeholder="email@example.com" value={email}
-                  onChange={(e) => setEmail(e.target.value)} required />
+              <div className="space-y-1">
+                <Label htmlFor="datum">Datum der Hochzeit</Label>
+                <Input
+                  id="datum"
+                  type="date"
+                  value={hochzeitsdatum}
+                  onChange={(e) => setHochzeitsdatum(e.target.value)}
+                />
               </div>
-              <div className="flex-1 min-w-[160px] space-y-1">
-                <Label htmlFor="angebotsnummer">Angebotsnummer</Label>
-                <Input id="angebotsnummer" placeholder="AN-2025-001" value={angebotsnummer}
-                  onChange={(e) => setAngebotsnummer(e.target.value)} required />
+              <div className="space-y-1">
+                <Label htmlFor="email">E-Mail-Adresse *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="brautpaar@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
-              <div className="flex gap-2">
+              <div className="space-y-1">
+                <Label htmlFor="angebotsnummer">Angebotsnummer *</Label>
+                <Input
+                  id="angebotsnummer"
+                  placeholder="AN-2025-001"
+                  value={angebotsnummer}
+                  onChange={(e) => setAngebotsnummer(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="sm:col-span-2 flex gap-2 pt-1">
                 <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "Wird erstellt…" : "Erstellen"}
+                  {createMutation.isPending ? "Wird erstellt…" : "Zugang erstellen"}
                 </Button>
                 <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
                   Abbrechen
@@ -130,7 +162,8 @@ export default function Kunden() {
       <Card className="bg-blue-50 border-blue-200">
         <CardContent className="py-3 px-4">
           <p className="text-xs text-blue-700">
-            <span className="font-semibold">Anmeldung im Kundenportal:</span> Kunden melden sich mit ihrer <span className="font-semibold">E-Mail-Adresse</span> und der <span className="font-semibold">Angebotsnummer</span> an.
+            <span className="font-semibold">Kunden-Login:</span> E-Mail-Adresse + Angebotsnummer.
+            Der Kunde sieht im Portal den Countdown zur Hochzeit, seine Formulare und den Status.
           </p>
         </CardContent>
       </Card>
@@ -144,52 +177,66 @@ export default function Kunden() {
           {isLoading ? (
             <div className="p-8 text-center text-muted-foreground text-sm">Wird geladen…</div>
           ) : customers.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground text-sm">Noch keine Kundenkonten angelegt.</div>
+            <div className="p-8 text-center text-muted-foreground text-sm">
+              Noch keine Kundenkonten angelegt. Klicke auf „Neuer Kunde".
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/30">
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Name</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Brautpaar</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Hochzeit</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">E-Mail</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Angebotsnummer</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Erstellt</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Angebotsnr.</th>
                     <th className="w-12 px-4 py-3" />
                   </tr>
                 </thead>
                 <tbody>
-                  {customers.map((c, i) => (
-                    <tr key={c.id} className={`border-b border-border last:border-0 ${i % 2 === 0 ? "" : "bg-muted/10"}`}>
-                      <td className="px-4 py-3 font-medium">{c.name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        <span className="inline-flex items-center gap-1.5">
-                          <Mail className="w-3 h-3" />
-                          {c.email}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{c.angebotsnummer}</code>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">
-                        {new Date(c.createdAt).toLocaleDateString("de-DE", {
-                          day: "2-digit", month: "2-digit", year: "numeric",
-                        })}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Button
-                          variant="ghost" size="icon"
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10 w-7 h-7"
-                          onClick={() => {
-                            if (confirm(`Kundenkonto von "${c.name}" wirklich löschen?`)) {
-                              deleteMutation.mutate(c.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                  {customers.map((c, i) => {
+                    const days = daysUntil(c.hochzeitsdatum);
+                    return (
+                      <tr key={c.id} className={`border-b border-border last:border-0 ${i % 2 === 0 ? "" : "bg-muted/10"}`}>
+                        <td className="px-4 py-3 font-medium">{c.name}</td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {c.hochzeitsdatum ? (
+                            <div>
+                              <span>{new Date(c.hochzeitsdatum + "T12:00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+                              {days && (
+                                <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${days === "vergangen" ? "bg-gray-100 text-gray-500" : "bg-amber-100 text-amber-700"}`}>
+                                  {days}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground/50">–</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          <span className="inline-flex items-center gap-1.5">
+                            <Mail className="w-3 h-3" />
+                            {c.email}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{c.angebotsnummer}</code>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Button
+                            variant="ghost" size="icon"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 w-7 h-7"
+                            onClick={() => {
+                              if (confirm(`Kundenkonto von "${c.name}" wirklich löschen?`)) {
+                                deleteMutation.mutate(c.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
