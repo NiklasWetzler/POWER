@@ -129,13 +129,50 @@ export function buildEmailHtml(brautpaar: string, datum: string | undefined, loc
 </html>`;
 }
 
-export function buildEmailText(brautpaar: string, datum: string | undefined, location: string | undefined): string {
-  return `Neuer Musikfragebogen von NIWE Weddings
+export function buildEmailText(brautpaar: string, datum: string | undefined, location: string | undefined, data?: FormData): string {
+  const fd = data ?? {};
 
-Brautpaar: ${brautpaar}
-Datum: ${datum ?? "–"}
-Location: ${location ?? "–"}
+  const genres: string[] = [];
+  const genreKeys = ["Pop", "Rock", "Charts / Aktuelles", "Oldies (60er–80er)", "90er / 2000er",
+    "Hip-Hop / R'n'B", "House / EDM", "Schlager", "Disco / Funk", "Soul / Motown",
+    "Jazz / Swing", "Klassik", "Volksmusik", "Internationale Musik", "Sonstiges"];
+  for (const g of genreKeys) {
+    if (fd[`genre-${g}`] === "true" || fd[`genre-${g}`] === true) genres.push(g);
+  }
 
-Der vollständige Fragebogen ist im HTML-Anhang dieser E-Mail enthalten.
+  const alterList: string[] = [];
+  if (fd["alter-unter20"] === "true" || fd["alter-unter20"] === true) alterList.push("unter 20");
+  if (fd["alter-20bis35"] === "true" || fd["alter-20bis35"] === true) alterList.push("20–35");
+  if (fd["alter-35bis50"] === "true" || fd["alter-35bis50"] === true) alterList.push("35–50");
+  if (fd["alter-50plus"] === "true" || fd["alter-50plus"] === true) alterList.push("50+");
+
+  const songs = [1, 2, 3, 4, 5].map((n) => fd[`lieblingssong_${n}`]).filter(Boolean).join(", ");
+
+  function tf(label: string, value: unknown): string {
+    if (!value || (Array.isArray(value) && value.length === 0)) return "";
+    const display = Array.isArray(value) ? value.join(", ") : String(value);
+    if (!display.trim()) return "";
+    return `  ${label}: ${display}\n`;
+  }
+
+  return `Neuer Musikfragebogen – NIWE Weddings
+${"=".repeat(44)}
+
+BRAUTPAAR: ${brautpaar}
+Datum:     ${datum ?? "–"}
+Location:  ${location ?? "–"}
+
+──── 1. ALLGEMEINE ANGABEN ────────────────
+${tf("Anzahl Gäste", fd["gaeste"])}${tf("Durchschnittsalter", alterList.join(", "))}${tf("Altersverteilung", fd["altersverteilung"])}
+──── 2. MUSIKGESCHMACK ────────────────────
+${tf("Genres", genres.join(", "))}${tf("Zu vermeiden", fd["vermeiden"])}${tf("Lieblingssongs / Künstler", songs)}${tf("Verbotene Songs", fd["verboten"])}
+──── 3. MUSIKVERLAUF DER FEIER ────────────
+${tf("Sektempfang Musik", fd["sektempfangMusik"])}${tf("Sektempfang Stil", fd["sektStil"])}${tf("Essen Musik", fd["essensMusik"])}${tf("Essen Stil", fd["essensStil"])}${tf("Eröffnungstanz", fd["eröffnungstanz"])}${tf("Eröffnungstanz Song", fd["eröffnungSong"])}${tf("Art des Tanzes", Array.isArray(fd["eröffnungTyp"]) ? (fd["eröffnungTyp"] as string[]).join(", ") : fd["eröffnungTyp"])}${tf("Einzug", fd["einzug"])}${tf("Torte", fd["torte"])}${tf("Brautstraußwurf", fd["brautstrauss"])}${tf("Sonstige Punkte", fd["sonstigePunkte"])}${tf("Gastwünsche", fd["gästeWünsche"])}
+──── 4. TECHNIK & ABLAUF ──────────────────
+${tf("Musik ab", fd["musikAb"])}${tf("Aufbau ab", fd["aufbauAb"])}${tf("Musik bis", fd["musikBis"])}${tf("Lautstärkeregeln", fd["lautstärke"])}${tf("Technik vorhanden", fd["technikVorhanden"])}${tf("Location Besonderheiten", fd["locationBes"])}${tf("Bühne", fd["buehne"])}
+──── 5. WEITERE HINWEISE ──────────────────
+${tf("Besondere Wünsche", fd["besondereWuensche"])}${tf("Sonstige Hinweise", fd["sonstigeHinweise"])}
+${"=".repeat(44)}
+Übermittelt über das Online-Formular von NIWE Weddings.
 `;
 }

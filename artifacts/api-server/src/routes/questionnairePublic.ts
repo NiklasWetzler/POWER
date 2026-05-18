@@ -64,7 +64,7 @@ router.post("/questionnaire/submit", async (req, res): Promise<void> => {
   if (transport) {
     try {
       const html = buildEmailHtml(brautpaar, datum, location, safeFormData);
-      const text = buildEmailText(brautpaar, datum, location);
+      const text = buildEmailText(brautpaar, datum, location, safeFormData);
       await transport.sendMail({
         from: `"NIWE Weddings Fragebogen" <${fromEmail()}>`,
         to: "info@niwe-events.com",
