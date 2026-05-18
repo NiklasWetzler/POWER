@@ -8,12 +8,15 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  MessageCircle,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 
-const navItems = [
+const navItems: { href: string; label: string; icon: typeof Users; badgeKey?: "kontakt" }[] = [
   { href: "/admin/fragebogen", label: "Fragebögen", icon: ClipboardList },
+  { href: "/admin/kontakt", label: "Kontakt", icon: MessageCircle, badgeKey: "kontakt" },
   { href: "/admin/kunden", label: "Kunden", icon: Users },
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
 ];
@@ -28,6 +31,19 @@ function AdminSidebar({
   onToggle: () => void;
 }) {
   const [location] = useLocation();
+
+  const { data: kontaktBadge } = useQuery<{ count: number }>({
+    queryKey: ["admin-kontakt-badge"],
+    queryFn: async () => {
+      const [chat, pend] = await Promise.all([
+        fetch("/api/admin/chat/unread-count", { credentials: "include" }).then((r) => r.ok ? r.json() : { count: 0 }),
+        fetch("/api/admin/appointments/pending-count", { credentials: "include" }).then((r) => r.ok ? r.json() : { count: 0 }),
+      ]);
+      return { count: (chat?.count ?? 0) + (pend?.count ?? 0) };
+    },
+    refetchInterval: 20000,
+  });
+  const kontaktCount = kontaktBadge?.count ?? 0;
 
   return (
     <aside
@@ -85,13 +101,29 @@ function AdminSidebar({
                     : "text-gray-400 hover:bg-gray-800 hover:text-white"
                 )}
               >
-                <Icon
-                  className={cn(
-                    "w-4 h-4 shrink-0",
-                    isActive ? "text-amber-400" : "text-gray-500"
+                <div className="relative">
+                  <Icon
+                    className={cn(
+                      "w-4 h-4 shrink-0",
+                      isActive ? "text-amber-400" : "text-gray-500"
+                    )}
+                  />
+                  {item.badgeKey === "kontakt" && kontaktCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                      {kontaktCount > 9 ? "9+" : kontaktCount}
+                    </span>
                   )}
-                />
-                {!collapsed && <span>{item.label}</span>}
+                </div>
+                {!collapsed && (
+                  <span className="flex-1 flex items-center justify-between">
+                    {item.label}
+                    {item.badgeKey === "kontakt" && kontaktCount > 0 && (
+                      <span className="ml-2 px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                        {kontaktCount > 9 ? "9+" : kontaktCount}
+                      </span>
+                    )}
+                  </span>
+                )}
               </div>
             </Link>
           );

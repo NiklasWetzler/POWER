@@ -6,3 +6,5 @@ export * from "./prospects";
 export * from "./emails";
 export * from "./activity";
 export * from "./questionnaire";
+export * from "./chat";
+export * from "./appointments";

@@ -28,10 +28,12 @@ import UebermittelteFormulare from "@/pages/portal/UebermittelteFormulare";
 import MusikFragebogenPortal from "@/pages/portal/MusikFragebogenPortal";
 import DJVertragPortal from "@/pages/portal/DJVertragPortal";
 import Eingang from "@/pages/portal/Eingang";
+import Kontakt from "@/pages/portal/Kontakt";
 
 // Admin pages
 import FragebogenAdmin from "@/pages/FragebogenAdmin";
 import Kunden from "@/pages/admin/Kunden";
+import AdminKontakt from "@/pages/admin/Kontakt";
 import Dashboard from "@/pages/Dashboard";
 
 const queryClient = new QueryClient({
@@ -125,6 +127,9 @@ function Router() {
       <Route path="/portal/eingang">
         {() => <CustomerRoute><Eingang /></CustomerRoute>}
       </Route>
+      <Route path="/portal/kontakt">
+        {() => <CustomerRoute><Kontakt /></CustomerRoute>}
+      </Route>
       <Route path="/portal">
         {() => <CustomerRoute><PortalHome /></CustomerRoute>}
       </Route>
@@ -138,6 +143,9 @@ function Router() {
       </Route>
       <Route path="/admin/kunden">
         {() => <AdminRoute><Kunden /></AdminRoute>}
+      </Route>
+      <Route path="/admin/kontakt">
+        {() => <AdminRoute><AdminKontakt /></AdminRoute>}
       </Route>
       <Route path="/admin/dashboard">
         {() => <AdminRoute><Dashboard /></AdminRoute>}

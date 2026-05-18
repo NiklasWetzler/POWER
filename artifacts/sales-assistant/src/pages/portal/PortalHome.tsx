@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Music2, FileText, ChevronRight, CheckCircle2, Clock, Circle, Inbox } from "lucide-react";
+import { Music2, FileText, ChevronRight, CheckCircle2, Clock, Circle, Inbox, MessageCircle, CalendarDays } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
 
@@ -180,6 +180,27 @@ export default function PortalHome() {
       {customer?.hochzeitsdatum && (
         <Countdown datum={customer.hochzeitsdatum} />
       )}
+
+      {/* Kontakt CTA */}
+      <Link href="/portal/kontakt">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow border-gray-200 group bg-gradient-to-br from-amber-50 to-white">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <MessageCircle className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-gray-900 group-hover:text-amber-700 transition-colors">
+                Nehmt mit uns Kontakt auf
+              </p>
+              <p className="text-xs text-gray-600 mt-0.5 flex items-center gap-3 flex-wrap">
+                <span className="inline-flex items-center gap-1"><MessageCircle className="w-3 h-3" />Chat</span>
+                <span className="inline-flex items-center gap-1"><CalendarDays className="w-3 h-3" />Beratungstermin anfragen</span>
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-amber-500 shrink-0 transition-colors" />
+          </CardContent>
+        </Card>
+      </Link>
 
       {/* Formulare */}
       <section className="space-y-3">

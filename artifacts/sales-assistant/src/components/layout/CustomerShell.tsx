@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Home, FileText, Inbox, Mail, LogOut } from "lucide-react";
+import { Home, FileText, Inbox, Mail, LogOut, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
@@ -9,6 +9,7 @@ import { Logo } from "@/components/Logo";
 const navItems: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; key?: string }[] = [
   { href: "/portal", label: "Startseite", icon: Home, exact: true },
   { href: "/portal/eingang", label: "Eingang", icon: Mail, key: "eingang" },
+  { href: "/portal/kontakt", label: "Kontakt", icon: MessageCircle, key: "kontakt" },
   { href: "/portal/formulare", label: "Formulare", icon: FileText },
   { href: "/portal/eingereicht", label: "Übermittelte", icon: Inbox },
 ];
@@ -27,6 +28,17 @@ export function CustomerShell({ children, onLogout }: { children: React.ReactNod
   });
   const unreadCount = unread?.count ?? 0;
 
+  const { data: chatUnread } = useQuery<{ count: number }>({
+    queryKey: ["customer-chat-unread"],
+    queryFn: async () => {
+      const res = await fetch("/api/customer/chat/unread-count", { credentials: "include" });
+      if (!res.ok) return { count: 0 };
+      return res.json() as Promise<{ count: number }>;
+    },
+    refetchInterval: 15000,
+  });
+  const chatUnreadCount = chatUnread?.count ?? 0;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Top nav */}
@@ -41,7 +53,8 @@ export function CustomerShell({ children, onLogout }: { children: React.ReactNod
           <nav className="flex-1 flex items-center gap-1 ml-4">
             {navItems.map(({ href, label, icon: Icon, exact, key }) => {
               const isActive = exact ? location === href : (location === href || location.startsWith(href + "/"));
-              const showBadge = key === "eingang" && unreadCount > 0;
+              const badgeCount = key === "eingang" ? unreadCount : key === "kontakt" ? chatUnreadCount : 0;
+              const showBadge = badgeCount > 0;
               return (
                 <Link key={href} href={href}>
                   <div className={cn(
@@ -54,7 +67,7 @@ export function CustomerShell({ children, onLogout }: { children: React.ReactNod
                       <Icon className="w-4 h-4 shrink-0" />
                       {showBadge && (
                         <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">
-                          {unreadCount > 9 ? "9+" : unreadCount}
+                          {badgeCount > 9 ? "9+" : badgeCount}
                         </span>
                       )}
                     </div>

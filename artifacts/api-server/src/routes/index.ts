@@ -11,6 +11,8 @@ import customerAuthRouter from "./customerAuth";
 import customerPortalRouter from "./customerPortal";
 import adminCustomersRouter from "./adminCustomers";
 import customerMessagesRouter from "./customerMessages";
+import chatRouter from "./chat";
+import appointmentsRouter from "./appointments";
 import { requireAdmin } from "../lib/authMiddleware";
 
 const router: IRouter = Router();
@@ -26,6 +28,8 @@ router.use(customerPortalRouter);
 
 // ── Mixed (per-route customer + admin auth via middleware) ─
 router.use(customerMessagesRouter);
+router.use(chatRouter);
+router.use(appointmentsRouter);
 
 // ── Admin (admin session required) ────────────────────────
 router.use(requireAdmin);
