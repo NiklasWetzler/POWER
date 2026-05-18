@@ -1,11 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 
 interface AuthState {
   loggedIn: boolean;
   loading: boolean;
 }
 
+interface AuthContextValue extends AuthState {
+  login: () => void;
+  logout: () => Promise<void>;
+  refresh: () => Promise<void>;
+}
+
+export const AuthContext = createContext<AuthContextValue>({
+  loggedIn: false,
+  loading: true,
+  login: () => {},
+  logout: async () => {},
+  refresh: async () => {},
+});
+
 export function useAuth() {
+  return useContext(AuthContext);
+}
+
+export function useAuthProvider(): AuthContextValue {
   const [auth, setAuth] = useState<AuthState>({ loggedIn: false, loading: true });
 
   const check = async () => {
@@ -22,9 +40,7 @@ export function useAuth() {
     }
   };
 
-  useEffect(() => {
-    void check();
-  }, []);
+  useEffect(() => { void check(); }, []);
 
   const login = () => setAuth({ loggedIn: true, loading: false });
 

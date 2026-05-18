@@ -23,6 +23,26 @@ router.get("/questionnaire/submissions", async (req, res): Promise<void> => {
   res.json(rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })));
 });
 
+// GET /questionnaire/submissions/:id — full detail with formData (admin)
+router.get("/questionnaire/submissions/:id", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  const [row] = await db
+    .select()
+    .from(questionnaireSubmissionsTable)
+    .where(eq(questionnaireSubmissionsTable.id, id));
+
+  if (!row) {
+    res.status(404).json({ error: "Fragebogen nicht gefunden." });
+    return;
+  }
+
+  res.json({
+    ...row,
+    createdAt: row.createdAt.toISOString(),
+    formData: JSON.parse(row.formData) as Record<string, unknown>,
+  });
+});
+
 // PATCH /questionnaire/submissions/:id/status — update status (admin)
 router.patch("/questionnaire/submissions/:id/status", async (req, res): Promise<void> => {
   const id = parseInt(req.params.id, 10);

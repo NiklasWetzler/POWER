@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -14,26 +15,23 @@ import Compose from "@/pages/Compose";
 import Fragebogen from "@/pages/Fragebogen";
 import FragebogenAdmin from "@/pages/FragebogenAdmin";
 import Login from "@/pages/Login";
-import { useAuth } from "@/hooks/useAuth";
+import { AuthContext, useAuth, useAuthProvider } from "@/hooks/useAuth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
+    queries: { refetchOnWindowFocus: false, retry: 1 },
   },
 });
-
-function RedirectToAdmin() {
-  const [, navigate] = useLocation();
-  navigate("/fragebogen");
-  return null;
-}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { loggedIn, loading } = useAuth();
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!loading && !loggedIn) {
+      navigate("/login");
+    }
+  }, [loggedIn, loading, navigate]);
 
   if (loading) {
     return (
@@ -43,93 +41,65 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!loggedIn) {
-    navigate("/login");
-    return null;
-  }
+  if (!loggedIn) return null;
 
   return <>{children}</>;
 }
 
-function Router() {
-  const { loggedIn, login, logout } = useAuth();
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { logout } = useAuth();
+  return (
+    <ProtectedRoute>
+      <Shell onLogout={logout}>{children}</Shell>
+    </ProtectedRoute>
+  );
+}
 
+function LoginRoute() {
+  const { loggedIn, loading, login } = useAuth();
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!loading && loggedIn) navigate("/fragebogen");
+  }, [loggedIn, loading, navigate]);
+
+  if (loading || loggedIn) return null;
+  return <Login onLogin={login} />;
+}
+
+function Router() {
   return (
     <Switch>
       {/* Public — questionnaire for couples */}
       <Route path="/">{() => <Fragebogen />}</Route>
 
       {/* Admin login */}
-      <Route path="/login">
-        {() =>
-          loggedIn ? (
-            <RedirectToAdmin />
-          ) : (
-            <Login onLogin={login} />
-          )
-        }
-      </Route>
+      <Route path="/login">{() => <LoginRoute />}</Route>
 
       {/* Protected admin routes */}
       <Route path="/dashboard">
-        <ProtectedRoute>
-          <Shell onLogout={logout}>
-            <Dashboard />
-          </Shell>
-        </ProtectedRoute>
+        <AdminRoute><Dashboard /></AdminRoute>
       </Route>
       <Route path="/prospects/:id">
-        {() => (
-          <ProtectedRoute>
-            <Shell onLogout={logout}>
-              <ProspectDetail />
-            </Shell>
-          </ProtectedRoute>
-        )}
+        {() => <AdminRoute><ProspectDetail /></AdminRoute>}
       </Route>
       <Route path="/prospects">
-        <ProtectedRoute>
-          <Shell onLogout={logout}>
-            <Prospects />
-          </Shell>
-        </ProtectedRoute>
+        <AdminRoute><Prospects /></AdminRoute>
       </Route>
       <Route path="/campaigns/:id">
-        {() => (
-          <ProtectedRoute>
-            <Shell onLogout={logout}>
-              <CampaignDetail />
-            </Shell>
-          </ProtectedRoute>
-        )}
+        {() => <AdminRoute><CampaignDetail /></AdminRoute>}
       </Route>
       <Route path="/campaigns">
-        <ProtectedRoute>
-          <Shell onLogout={logout}>
-            <Campaigns />
-          </Shell>
-        </ProtectedRoute>
+        <AdminRoute><Campaigns /></AdminRoute>
       </Route>
       <Route path="/compose">
-        <ProtectedRoute>
-          <Shell onLogout={logout}>
-            <Compose />
-          </Shell>
-        </ProtectedRoute>
+        <AdminRoute><Compose /></AdminRoute>
       </Route>
       <Route path="/emails">
-        <ProtectedRoute>
-          <Shell onLogout={logout}>
-            <Emails />
-          </Shell>
-        </ProtectedRoute>
+        <AdminRoute><Emails /></AdminRoute>
       </Route>
       <Route path="/fragebogen">
-        <ProtectedRoute>
-          <Shell onLogout={logout}>
-            <FragebogenAdmin />
-          </Shell>
-        </ProtectedRoute>
+        <AdminRoute><FragebogenAdmin /></AdminRoute>
       </Route>
 
       <Route component={NotFound} />
@@ -138,15 +108,18 @@ function Router() {
 }
 
 function App() {
+  const auth = useAuthProvider();
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <AuthContext.Provider value={auth}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </AuthContext.Provider>
   );
 }
 
