@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, Eraser, Download, FileSignature } from "lucide-react";
+import { ArrowLeft, Eraser, Download, FileSignature, Maximize2, Check, X } from "lucide-react";
 import SignaturePad from "signature_pad";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -331,6 +331,10 @@ export default function DJVertragPortal() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<{ id: number; downloadUrl: string } | null>(null);
   const [dj, setDj] = useState<DjContract | null>(null);
+  const [fullscreen, setFullscreen] = useState(false);
+
+  const fsCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fsPadRef = useRef<SignaturePad | null>(null);
 
   const [form, setForm] = useState({
     auftraggeberName: "",
@@ -392,6 +396,74 @@ export default function DJVertragPortal() {
   }, [loading]);
 
   function clearSignature() { sigPadRef.current?.clear(); }
+
+  // ── Fullscreen signature overlay ─────────────────────────────────────────
+  useEffect(() => {
+    if (!fullscreen) return;
+    const canvas = fsCanvasRef.current;
+    if (!canvas) return;
+
+    // Lock body scroll while overlay is open
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function resizeCanvas() {
+      if (!canvas) return;
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * ratio;
+      canvas.height = rect.height * ratio;
+      const ctx = canvas.getContext("2d");
+      ctx?.scale(ratio, ratio);
+      fsPadRef.current?.clear();
+    }
+
+    fsPadRef.current = new SignaturePad(canvas, {
+      backgroundColor: "rgb(255,255,255)",
+      penColor: "rgb(0,0,0)",
+      minWidth: 1.1,
+      maxWidth: 3.0,
+    });
+    resizeCanvas();
+
+    // Preload existing signature from inline pad, if any
+    if (sigPadRef.current && !sigPadRef.current.isEmpty()) {
+      const data = sigPadRef.current.toDataURL("image/png");
+      const img = new Image();
+      img.onload = () => {
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        // draw centered, scaled to fit
+        const rect = canvas.getBoundingClientRect();
+        ctx.drawImage(img, 0, 0, rect.width, rect.height);
+      };
+      img.src = data;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    return () => {
+      window.removeEventListener("resize", resizeCanvas);
+      fsPadRef.current?.off();
+      fsPadRef.current = null;
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [fullscreen]);
+
+  function clearFullscreen() { fsPadRef.current?.clear(); }
+
+  async function acceptFullscreen() {
+    if (!fsPadRef.current || fsPadRef.current.isEmpty()) {
+      toast({ title: "Bitte unterschreiben", description: "Das Feld ist noch leer.", variant: "destructive" });
+      return;
+    }
+    const dataUrl = fsPadRef.current.toDataURL("image/png");
+    setFullscreen(false);
+    // After close, transfer to inline pad on next tick
+    setTimeout(() => {
+      sigPadRef.current?.fromDataURL(dataUrl);
+    }, 50);
+  }
+
   function setField<K extends keyof typeof form>(key: K, v: string) {
     setForm((f) => ({ ...f, [key]: v }));
   }
@@ -547,24 +619,45 @@ export default function DJVertragPortal() {
 
           {/* Signature */}
           <section className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <div>
                 <Label className="text-sm font-semibold">Unterschrift Auftraggeber *</Label>
                 <p className="text-xs text-gray-500 mt-0.5">Datum heute: <span className="font-medium text-gray-700">{todayFormatted()}</span></p>
               </div>
-              <Button type="button" variant="ghost" size="sm" onClick={clearSignature} className="gap-1.5 h-7 text-xs">
-                <Eraser className="w-3 h-3" />
-                Löschen
-              </Button>
+              <div className="flex gap-1">
+                <Button type="button" variant="outline" size="sm" onClick={() => setFullscreen(true)} className="gap-1.5 h-8 text-xs">
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  Vollbild
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={clearSignature} className="gap-1.5 h-8 text-xs">
+                  <Eraser className="w-3.5 h-3.5" />
+                  Löschen
+                </Button>
+              </div>
             </div>
-            <div className="rounded-lg border-2 border-dashed border-gray-300 bg-white overflow-hidden">
-              <canvas
-                ref={canvasRef}
-                className="w-full block touch-none"
-                style={{ height: "180px" }}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">Mit Finger oder Maus unterschreiben.</p>
+            <button
+              type="button"
+              onClick={() => setFullscreen(true)}
+              className="w-full rounded-lg border-2 border-dashed border-amber-400 bg-white overflow-hidden hover:bg-amber-50/40 transition-colors text-left"
+              title="Tippen zum Unterschreiben im Vollbildmodus"
+            >
+              <div className="relative">
+                <canvas
+                  ref={canvasRef}
+                  className="w-full block touch-none pointer-events-none"
+                  style={{ height: "240px" }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span className="text-amber-600 text-sm font-medium bg-white/70 px-3 py-1.5 rounded-full border border-amber-200 shadow-sm flex items-center gap-1.5">
+                    <Maximize2 className="w-4 h-4" />
+                    Hier tippen, um zu unterschreiben
+                  </span>
+                </div>
+              </div>
+            </button>
+            <p className="text-xs text-muted-foreground text-center">
+              Tippt auf das Feld, um es zu vergrößern und bequem mit dem Finger zu unterschreiben.
+            </p>
           </section>
 
           <div className="flex justify-end gap-2 pt-2">
@@ -575,6 +668,50 @@ export default function DJVertragPortal() {
           </div>
         </form>
       </div>
+
+      {/* ── Fullscreen signature overlay ──────────────────────────── */}
+      {fullscreen && (
+        <div className="fixed inset-0 z-50 bg-gray-900/95 flex flex-col p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3 text-white">
+            <div>
+              <h2 className="font-bold text-lg">Hier unterschreiben</h2>
+              <p className="text-xs text-gray-300">Mit Finger oder Maus, Datum: {todayFormatted()}</p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setFullscreen(false)}
+              className="text-white hover:bg-white/10"
+              aria-label="Schließen"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+          <div className="flex-1 rounded-xl bg-white overflow-hidden shadow-2xl">
+            <canvas ref={fsCanvasRef} className="w-full h-full block touch-none" />
+          </div>
+          <div className="flex gap-2 mt-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={clearFullscreen}
+              className="flex-1 gap-2 h-12"
+            >
+              <Eraser className="w-4 h-4" />
+              Löschen
+            </Button>
+            <Button
+              type="button"
+              onClick={acceptFullscreen}
+              className="flex-1 gap-2 h-12 bg-emerald-600 hover:bg-emerald-700"
+            >
+              <Check className="w-4 h-4" />
+              Übernehmen
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
