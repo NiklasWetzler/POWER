@@ -1,0 +1,172 @@
+1. Allgemeine Informationen
+1.1 Verarbeitung von personenbezogenen Daten
+Personenbezogene Daten sind alle Informationen, mit denen Du persönlich identifiziert werden kannst, z.B.:
+IP-Adresse
+Name
+Anschrift
+E-Mail-Adresse
+Telefonnummer
+Zahlungsdaten
+„Verarbeitung“ bedeutet jeder Vorgang im Zusammenhang mit personenbezogenen Daten, z.B. Erheben, Speichern, Verwenden, Übermitteln oder Löschen (Art. 4 Nr. 2 DSGVO).
+Weitere Begriffsbestimmungen findest Du in Art. 4 DSGVO.
+1.2 Anwendbare Rechtsgrundlagen
+Wir verarbeiten personenbezogene Daten ausschließlich auf Basis der gesetzlichen Grundlagen der DSGVO, insbesondere:
+Art. 6 Abs. 1 lit. a DSGVO – Einwilligung
+Art. 6 Abs. 1 lit. b DSGVO – Vertrag / vorvertragliche Maßnahmen
+Art. 6 Abs. 1 lit. c DSGVO – rechtliche Verpflichtung
+Art. 6 Abs. 1 lit. f DSGVO – berechtigtes Interesse
+Ggf. findet ergänzend das BDSG und für den Einsatz von Cookies und ähnlichen Technologien das TTDSG Anwendung.
+2. Verantwortlicher
+Verantwortlich für die Datenverarbeitung auf dieser Website ist:
+NIWE Events
+Vertreten durch: Niklas Wetzler
+Quellenweg 1
+88480 Achstetten
+Telefon: +49 151 22284776
+E-Mail: wetzler@niwe-events.com
+Wenn Du Fragen zum Datenschutz hast oder Deine Rechte geltend machen möchtest, kannst Du Dich jederzeit über die oben genannten Kontaktdaten an uns wenden.
+3. Unsere Grundsätze
+Datenschutz ist für uns keine Formsache, sondern Ausdruck eines respektvollen Umgangs mit Deinen Daten.
+Wir:
+erheben nur die Daten, die wir wirklich benötigen,
+verwenden sie zweckgebunden,
+schützen sie durch technische und organisatorische Maßnahmen,
+geben sie nur weiter, wenn hierfür eine Rechtsgrundlage besteht,
+löschen sie, sobald der Zweck entfällt und keine Aufbewahrungspflichten entgegenstehen.
+4. Hosting
+Unsere Website wird bei folgendem Anbieter gehostet:
+STRATO GmbH
+Otto-Ostrowski-Straße 7
+10249 Berlin
+Deutschland
+Im Rahmen des Hostings werden insbesondere folgende Daten verarbeitet:
+Server-Logfiles (siehe Abschnitt 5)
+alle Daten, die über die Website übermittelt werden (z.B. Kontaktanfragen, Bestellungen)
+Das Hosting erfolgt zum Zweck einer sicheren, schnellen und zuverlässigen Bereitstellung unserer Website.
+Rechtsgrundlagen:
+Art. 6 Abs. 1 lit. b DSGVO (Vertrag / vorvertragliche Maßnahmen)
+Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an stabiler und sicherer Bereitstellung)
+Art. 6 Abs. 1 lit. a DSGVO i.V.m. § 25 Abs. 1 TTDSG (bei Einwilligung in Cookies / Endgerätezugriffe, sofern einschlägig)
+Mit STRATO haben wir einen Vertrag zur Auftragsverarbeitung gemäß Art. 28 DSGVO geschlossen. STRATO verarbeitet personenbezogene Daten nur nach unserer Weisung.
+5. Datenerhebung beim Aufruf der Website (Server-Logfiles)
+Beim Besuch unserer Website werden automatisch Informationen in Server-Logfiles gespeichert. Dazu gehören:
+Browsertyp und -version
+verwendetes Betriebssystem
+Referrer URL
+Hostname des zugreifenden Rechners
+Uhrzeit der Serveranfrage
+IP-Adresse
+Diese Daten werden verarbeitet, um:
+einen reibungslosen Verbindungsaufbau zur Website zu gewährleisten
+die Systemsicherheit und -stabilität zu sichern
+technische Fehler zu analysieren
+die Website korrekt darzustellen
+Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an technischer Funktionalität und Sicherheit).
+Speicherdauer:
+Die Logfiles werden in der Regel für maximal 14 Tage gespeichert und anschließend gelöscht, sofern keine längere Aufbewahrung zur Aufklärung sicherheitsrelevanter Vorfälle erforderlich ist.
+Eine Zusammenführung mit anderen Daten findet nicht statt.
+6. Cookies
+6.1 Allgemeines
+Unsere Website verwendet Cookies und ähnliche Technologien. Cookies sind kleine Textdateien, die auf Deinem Endgerät gespeichert werden und Informationen enthalten, die im Zusammenhang mit unserer Website stehen.
+Cookies können unterschiedliche Funktionen haben, z.B.:
+technisch notwendige Funktionen
+Komfortfunktionen
+Analyse und Reichweitenmessung
+6.2 Ablehnung von Cookies
+Du kannst das Setzen von Cookies über die Einstellungen Deines Browsers einschränken oder verhindern. Dort kannst Du auch bereits gesetzte Cookies löschen.
+Hinweise für gängige Browser:
+Mozilla Firefox
+Google Chrome
+Microsoft Edge
+Safari
+(Die jeweiligen Anleitungen findest Du über die Support-Seiten der Anbieter.)
+Bitte beachte: Die Deaktivierung bestimmter Cookies kann die Funktionalität unserer Website einschränken.
+6.3 Technisch notwendige Cookies
+Diese Cookies sind erforderlich, damit unsere Website ordnungsgemäß funktioniert (z.B. Navigation, Sicherheit, ggf. Warenkorbfunktionen).
+Rechtsgrundlagen:
+Art. 6 Abs. 1 lit. b DSGVO (zur Vertragserfüllung erforderlich)
+Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an sicherem und funktionsfähigem Betrieb)
+ggf. Art. 6 Abs. 1 lit. c DSGVO (gesetzliche Verpflichtung)
+6.4 Technisch nicht notwendige Cookies
+Hierzu zählen z.B. Cookies für Statistik, Marketing oder Komfortfunktionen. Diese setzen wir nur ein, wenn Du zuvor eingewilligt hast.
+Rechtsgrundlage:
+Art. 6 Abs. 1 lit. a DSGVO
+§ 25 Abs. 1 TTDSG
+Du kannst Deine Einwilligung jederzeit über die Einstellungen des Cookie-Banners bzw. Deines Browsers widerrufen.
+7. Datenverarbeitung durch Nutzereingabe
+7.1 Merchandise / Bestellungen
+Sofern wir über unsere Website Merchandise oder vergleichbare Leistungen anbieten, verarbeiten wir zur Abwicklung:
+Name
+Anschrift
+E-Mail-Adresse
+ggf. Telefonnummer
+Zahlungsdaten / Kontodaten
+Bestelldaten
+Zweck: Durchführung und Abwicklung von Bestellungen und ggf. Kundenkommunikation.
+Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO.
+Speicherdauer: Bis der Zweck entfällt und keine gesetzlichen Aufbewahrungspflichten (z.B. handels- und steuerrechtlich) mehr bestehen.
+7.2 Kontaktaufnahme (E-Mail / Telefon / Formular)
+Wenn Du mit uns Kontakt aufnimmst, verarbeiten wir die von Dir übermittelten Daten (z.B. E-Mail-Adresse, Telefonnummer, Name, Inhalte der Nachricht), um Deine Anfrage zu bearbeiten.
+Rechtsgrundlagen:
+Art. 6 Abs. 1 lit. b DSGVO (vertragsbezogene Anfragen)
+Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an Kommunikation)
+Daten werden gelöscht, sobald Deine Anfrage abschließend beantwortet ist und keine gesetzlichen Aufbewahrungspflichten entgegenstehen.
+8. Social Media & Einbindungen von Drittanbietern
+8.1 Instagram (Profil & Einbindung)
+Wir nutzen Instagram, um Inhalte und Angebote von NIWE Events zu präsentieren. Anbieter ist:
+Meta Platforms Ireland Limited
+4 Grand Canal Square
+Grand Canal Harbour
+Dublin 2, Irland
+Beim Besuch unseres Instagram-Profils oder bei Interaktionen (Likes, Kommentare, Nachrichten) verarbeitet Meta personenbezogene Daten nach eigener Verantwortung. Wir erhalten von Meta ggf. anonymisierte Statistiken (Insights), aber keine direkten personenbezogenen Nutzungsprofile.
+Wenn auf unserer Website Instagram-Inhalte (z.B. Buttons, Feeds) eingebunden sind und Du diese aktivierst, kann eine direkte Verbindung zu den Servern von Meta hergestellt und Deine IP-Adresse sowie ggf. weitere Daten übertragen werden. Bist Du bei Instagram eingeloggt, kann Meta den Besuch Deinem Profil zuordnen.
+Rechtsgrundlage für die Einbindung (sofern Cookies / Tracking):
+Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TTDSG (Einwilligung über Cookie-/Consent-Tool).
+Rechtsgrundlage für unsere Nutzung von Insights / Interaktionen:
+Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an Außendarstellung und Kommunikation).
+Zwischen uns und Meta kann im Rahmen bestimmter Funktionen eine gemeinsame Verantwortlichkeit gemäß Art. 26 DSGVO bestehen (siehe Informationen bei Meta).
+Weitere Infos zum Datenschutz bei Instagram/Meta findest Du in der dortigen Datenschutzerklärung.
+9. Zahlungsdienste
+Wenn Du kostenpflichtige Leistungen in Anspruch nimmst, können folgende Zahlungsdienstleister eingebunden sein (abhängig vom konkreten Angebot auf unserer Website):
+9.1 PayPal
+Anbieter: PayPal (Europe) S.à r.l. et Cie, S.C.A., 22-24 Boulevard Royal, L-2449 Luxembourg.
+Zweck: Zahlungsabwicklung.
+Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertrag), Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an sicherer Zahlung).
+Es gelten ergänzend die Datenschutzbestimmungen von PayPal.
+9.2 Apple Pay
+Anbieter: Apple Inc., One Apple Park Way, Cupertino, CA 95014, USA.
+Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO, Art. 6 Abs. 1 lit. f DSGVO.
+Es gelten ergänzend die Datenschutzbestimmungen von Apple.
+9.3 Google Pay
+Anbieter: Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland.
+Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO, Art. 6 Abs. 1 lit. f DSGVO.
+Es gelten ergänzend die Datenschutzbestimmungen von Google.
+Die Zahlungsdienstleister verarbeiten die Zahlungsdaten eigenverantwortlich. Bitte beachte deren Datenschutzerklärungen.
+10. CRM / Kommunikation & Organisation
+Soweit wir Systeme zur Verwaltung von Kundenanfragen, Kontakten oder Buchungen einsetzen (z.B. E-Mail-Systeme oder Tools unseres Hostinganbieters bzw. vergleichbare Dienste), werden die dort gespeicherten personenbezogenen Daten ausschließlich zum Zweck der Kommunikation, Vertragsdurchführung und Organisation verwendet.
+Rechtsgrundlagen:
+Art. 6 Abs. 1 lit. b DSGVO
+Art. 6 Abs. 1 lit. f DSGVO (effiziente und geordnete Bearbeitung von Anfragen und Kundenbeziehungen)
+11. Deine Rechte
+Du hast nach der DSGVO folgende Rechte in Bezug auf Deine personenbezogenen Daten:
+Auskunft (Art. 15 DSGVO)
+Ob und welche Daten wir von Dir verarbeiten.
+Berichtigung (Art. 16 DSGVO)
+Berichtigung unrichtiger oder Vervollständigung unvollständiger Daten.
+Löschung (Art. 17 DSGVO)
+Löschung Deiner Daten, sofern die Voraussetzungen erfüllt sind („Recht auf Vergessenwerden“).
+Einschränkung der Verarbeitung (Art. 18 DSGVO)
+Datenübertragbarkeit (Art. 20 DSGVO)
+Erhalt der von Dir bereitgestellten Daten in einem strukturierten, gängigen Format.
+Widerspruch (Art. 21 DSGVO)
+Gegen Verarbeitungen auf Basis von Art. 6 Abs. 1 lit. e oder f DSGVO, insbesondere gegen Direktwerbung.
+Keine ausschließlich automatisierte Entscheidung (Art. 22 DSGVO)
+Du kannst erteilte Einwilligungen jederzeit mit Wirkung für die Zukunft widerrufen (Art. 7 Abs. 3 DSGVO).
+Die Rechtmäßigkeit der bis zum Widerruf erfolgten Verarbeitung bleibt unberührt.
+Zur Ausübung Deiner Rechte genügt eine formlose Mitteilung an die unter Ziffer 2 genannten Kontaktdaten.
+12. Beschwerderecht
+Wenn Du der Ansicht bist, dass die Verarbeitung Deiner personenbezogenen Daten gegen die DSGVO verstößt, hast Du das Recht, Dich bei einer Datenschutzaufsichtsbehörde zu beschweren (Art. 77 DSGVO). Zuständig ist z.B. die Aufsichtsbehörde Deines gewöhnlichen Aufenthaltsorts oder unseres Unternehmenssitzes.
+13. Änderungen dieser Datenschutzerklärung
+Rechtliche oder technische Entwicklungen können Anpassungen dieser Datenschutzerklärung erforderlich machen.
+Die jeweils aktuelle Version wird auf dieser Website veröffentlicht. Wir empfehlen Dir, die Datenschutzerklärung in regelmäßigen Abständen zu lesen.
+Stand: 7. November 2025
