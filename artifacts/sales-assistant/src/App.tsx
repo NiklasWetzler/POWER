@@ -25,6 +25,7 @@ import PortalHome from "@/pages/portal/PortalHome";
 import Formulare from "@/pages/portal/Formulare";
 import UebermittelteFormulare from "@/pages/portal/UebermittelteFormulare";
 import MusikFragebogenPortal from "@/pages/portal/MusikFragebogenPortal";
+import DJVertragPortal from "@/pages/portal/DJVertragPortal";
 import Eingang from "@/pages/portal/Eingang";
 
 // Admin pages
@@ -109,6 +110,9 @@ function Router() {
       {/* Customer portal */}
       <Route path="/portal/formulare/musikfragebogen">
         {() => <CustomerRoute><MusikFragebogenPortal /></CustomerRoute>}
+      </Route>
+      <Route path="/portal/formulare/dj-vertrag">
+        {() => <CustomerRoute><DJVertragPortal /></CustomerRoute>}
       </Route>
       <Route path="/portal/formulare">
         {() => <CustomerRoute><Formulare /></CustomerRoute>}

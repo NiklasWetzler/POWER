@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Plus, Trash2, Mail, Send, X, Paperclip, FileText } from "lucide-react";
+import {
+  Users, Plus, Trash2, Mail, Send, X, Paperclip, FileText,
+  Pencil, ClipboardList, Music2, FileSignature,
+} from "lucide-react";
 
 interface Customer {
   id: number;
@@ -14,6 +18,11 @@ interface Customer {
   email: string;
   angebotsnummer: string;
   hochzeitsdatum: string | null;
+  telefon: string | null;
+  strasse: string | null;
+  plz: string | null;
+  ort: string | null;
+  location: string | null;
   createdAt: string;
 }
 
@@ -26,7 +35,12 @@ interface Message {
   createdAt: string;
 }
 
-// ─── Send-message modal ───────────────────────────────────────────────────────
+const AVAILABLE_FORMS: { id: string; title: string; description: string; icon: typeof Music2 }[] = [
+  { id: "musikfragebogen", title: "Musikfragebogen", description: "Musikwünsche, Genres, Ablauf", icon: Music2 },
+  { id: "dj-vertrag", title: "DJ-Booking Vertrag", description: "Vertrag mit Unterschrift", icon: FileSignature },
+];
+
+// ─── Send-message modal ──────────────────────────────────────────────────────
 function SendMessageModal({ customer, onClose }: { customer: Customer; onClose: () => void }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -117,7 +131,6 @@ function SendMessageModal({ customer, onClose }: { customer: Customer; onClose: 
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          {/* Compose */}
           <form
             onSubmit={(e) => { e.preventDefault(); sendMutation.mutate(); }}
             className="space-y-3"
@@ -151,7 +164,6 @@ function SendMessageModal({ customer, onClose }: { customer: Customer; onClose: 
             </div>
           </form>
 
-          {/* History */}
           {history.length > 0 && (
             <div className="pt-4 border-t border-gray-200">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
@@ -197,17 +209,214 @@ function SendMessageModal({ customer, onClose }: { customer: Customer; onClose: 
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Edit customer modal ────────────────────────────────────────────────────
+function EditCustomerModal({ customer, onClose }: { customer: Customer; onClose: () => void }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [f, setF] = useState({
+    name: customer.name,
+    email: customer.email,
+    angebotsnummer: customer.angebotsnummer,
+    hochzeitsdatum: customer.hochzeitsdatum ?? "",
+    telefon: customer.telefon ?? "",
+    strasse: customer.strasse ?? "",
+    plz: customer.plz ?? "",
+    ort: customer.ort ?? "",
+    location: customer.location ?? "",
+  });
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/admin/customers/${customer.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(f),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(j.error ?? "Fehler beim Speichern.");
+      }
+    },
+    onSuccess: () => {
+      toast({ title: "Gespeichert", description: `${f.name} wurde aktualisiert.` });
+      void queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
+      onClose();
+    },
+    onError: (err) => toast({ title: "Fehler", description: err instanceof Error ? err.message : "", variant: "destructive" }),
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold">Kunde bearbeiten</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}><X className="w-4 h-4" /></Button>
+        </div>
+        <form
+          onSubmit={(e) => { e.preventDefault(); save.mutate(); }}
+          className="flex-1 overflow-y-auto px-6 py-5 space-y-3"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1 sm:col-span-2">
+              <Label>Name des Brautpaares *</Label>
+              <Input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label>E-Mail *</Label>
+              <Input type="email" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label>Angebotsnummer *</Label>
+              <Input required value={f.angebotsnummer} onChange={(e) => setF({ ...f, angebotsnummer: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label>Telefon</Label>
+              <Input value={f.telefon} onChange={(e) => setF({ ...f, telefon: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label>Hochzeitsdatum</Label>
+              <Input type="date" value={f.hochzeitsdatum} onChange={(e) => setF({ ...f, hochzeitsdatum: e.target.value })} />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <Label>Straße & Hausnummer</Label>
+              <Input value={f.strasse} onChange={(e) => setF({ ...f, strasse: e.target.value })} placeholder="z. B. Musterstraße 12" />
+            </div>
+            <div className="space-y-1">
+              <Label>PLZ</Label>
+              <Input value={f.plz} onChange={(e) => setF({ ...f, plz: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label>Ort</Label>
+              <Input value={f.ort} onChange={(e) => setF({ ...f, ort: e.target.value })} />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <Label>Hochzeitslocation</Label>
+              <Input value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })} placeholder="z. B. Waldvogel Leipheim" />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="ghost" onClick={onClose}>Abbrechen</Button>
+            <Button type="submit" disabled={save.isPending}>{save.isPending ? "Speichern…" : "Speichern"}</Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── Assign forms modal ─────────────────────────────────────────────────────
+function AssignFormsModal({ customer, onClose }: { customer: Customer; onClose: () => void }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const { data: assigned, isLoading } = useQuery<string[]>({
+    queryKey: ["admin-customer-forms", customer.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/customers/${customer.id}/forms`, { credentials: "include" });
+      if (!res.ok) throw new Error("Fehler");
+      return res.json() as Promise<string[]>;
+    },
+  });
+
+  useEffect(() => {
+    if (assigned) setSelected(new Set(assigned));
+  }, [assigned]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/admin/customers/${customer.id}/forms`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ formIds: Array.from(selected) }),
+      });
+      if (!res.ok) throw new Error("Fehler beim Speichern.");
+    },
+    onSuccess: () => {
+      toast({ title: "Formulare aktualisiert", description: `Für ${customer.name} gespeichert.` });
+      void queryClient.invalidateQueries({ queryKey: ["admin-customer-forms", customer.id] });
+      onClose();
+    },
+    onError: (err) => toast({ title: "Fehler", description: err instanceof Error ? err.message : "", variant: "destructive" }),
+  });
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <div>
+            <h2 className="text-lg font-semibold">Formulare zuweisen</h2>
+            <p className="text-xs text-gray-500">{customer.name}</p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose}><X className="w-4 h-4" /></Button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-2">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Wird geladen…</p>
+          ) : (
+            AVAILABLE_FORMS.map((form) => {
+              const Icon = form.icon;
+              const isSel = selected.has(form.id);
+              return (
+                <label
+                  key={form.id}
+                  className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                    isSel ? "bg-amber-50 border-amber-300" : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <Checkbox checked={isSel} onCheckedChange={() => toggle(form.id)} className="mt-0.5" />
+                  <div className="w-9 h-9 rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0">
+                    <Icon className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-gray-900">{form.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{form.description}</p>
+                  </div>
+                </label>
+              );
+            })
+          )}
+          <p className="text-xs text-muted-foreground pt-2">
+            Nur ausgewählte Formulare erscheinen im Portal des Kunden unter „Formulare".
+          </p>
+        </div>
+        <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
+          <Button variant="ghost" onClick={onClose}>Abbrechen</Button>
+          <Button onClick={() => save.mutate()} disabled={save.isPending}>
+            {save.isPending ? "Speichern…" : "Speichern"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main page ──────────────────────────────────────────────────────────────
 export default function Kunden() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [angebotsnummer, setAngebotsnummer] = useState("");
-  const [hochzeitsdatum, setHochzeitsdatum] = useState("");
+  const [createForm, setCreateForm] = useState({
+    name: "", email: "", angebotsnummer: "", hochzeitsdatum: "",
+    telefon: "", strasse: "", plz: "", ort: "", location: "",
+  });
   const [showForm, setShowForm] = useState(false);
   const [messageCustomer, setMessageCustomer] = useState<Customer | null>(null);
+  const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
+  const [assignCustomer, setAssignCustomer] = useState<Customer | null>(null);
 
   const { data: customers = [], isLoading } = useQuery<Customer[]>({
     queryKey: ["admin-customers"],
@@ -224,7 +433,7 @@ export default function Kunden() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ name, email, angebotsnummer, hochzeitsdatum: hochzeitsdatum || undefined }),
+        body: JSON.stringify(createForm),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({})) as { error?: string };
@@ -234,9 +443,12 @@ export default function Kunden() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
-      setName(""); setEmail(""); setAngebotsnummer(""); setHochzeitsdatum("");
+      setCreateForm({
+        name: "", email: "", angebotsnummer: "", hochzeitsdatum: "",
+        telefon: "", strasse: "", plz: "", ort: "", location: "",
+      });
       setShowForm(false);
-      toast({ title: "Kundenkonto erstellt", description: `Zugang für ${name} wurde angelegt.` });
+      toast({ title: "Kundenkonto erstellt" });
     },
     onError: (err) => {
       toast({ title: "Fehler", description: err instanceof Error ? err.message : "Unbekannt.", variant: "destructive" });
@@ -261,14 +473,18 @@ export default function Kunden() {
     return `in ${diff} Tagen`;
   }
 
+  function setCF<K extends keyof typeof createForm>(k: K, v: string) {
+    setCreateForm((p) => ({ ...p, [k]: v }));
+  }
+
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+    <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Users className="w-6 h-6 text-muted-foreground" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Kundenverwaltung</h1>
-            <p className="text-sm text-muted-foreground">Zugangsdaten verwalten und Nachrichten an Kunden senden</p>
+            <p className="text-sm text-muted-foreground">Zugangsdaten, Adresse, Formulare und Nachrichten verwalten</p>
           </div>
         </div>
         <Button onClick={() => setShowForm((v) => !v)} className="gap-2">
@@ -285,23 +501,43 @@ export default function Kunden() {
           <CardContent>
             <form
               onSubmit={(e) => { e.preventDefault(); createMutation.mutate(); }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-3"
             >
-              <div className="space-y-1">
-                <Label htmlFor="name">Name des Brautpaares *</Label>
-                <Input id="name" placeholder="z. B. Julia & Markus Müller" value={name} onChange={(e) => setName(e.target.value)} required />
+              <div className="space-y-1 sm:col-span-2">
+                <Label>Name des Brautpaares *</Label>
+                <Input placeholder="z. B. Julia & Markus Müller" value={createForm.name} onChange={(e) => setCF("name", e.target.value)} required />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="datum">Datum der Hochzeit</Label>
-                <Input id="datum" type="date" value={hochzeitsdatum} onChange={(e) => setHochzeitsdatum(e.target.value)} />
+                <Label>E-Mail *</Label>
+                <Input type="email" value={createForm.email} onChange={(e) => setCF("email", e.target.value)} required />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="email">E-Mail-Adresse *</Label>
-                <Input id="email" type="email" placeholder="brautpaar@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Label>Angebotsnummer *</Label>
+                <Input value={createForm.angebotsnummer} onChange={(e) => setCF("angebotsnummer", e.target.value)} required />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="angebotsnummer">Angebotsnummer *</Label>
-                <Input id="angebotsnummer" placeholder="AN-2025-001" value={angebotsnummer} onChange={(e) => setAngebotsnummer(e.target.value)} required />
+                <Label>Telefon</Label>
+                <Input value={createForm.telefon} onChange={(e) => setCF("telefon", e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Hochzeitsdatum</Label>
+                <Input type="date" value={createForm.hochzeitsdatum} onChange={(e) => setCF("hochzeitsdatum", e.target.value)} />
+              </div>
+              <div className="space-y-1 sm:col-span-2">
+                <Label>Straße & Hausnummer</Label>
+                <Input value={createForm.strasse} onChange={(e) => setCF("strasse", e.target.value)} placeholder="z. B. Musterstraße 12" />
+              </div>
+              <div className="space-y-1">
+                <Label>PLZ</Label>
+                <Input value={createForm.plz} onChange={(e) => setCF("plz", e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Ort</Label>
+                <Input value={createForm.ort} onChange={(e) => setCF("ort", e.target.value)} />
+              </div>
+              <div className="space-y-1 sm:col-span-2">
+                <Label>Hochzeitslocation</Label>
+                <Input value={createForm.location} onChange={(e) => setCF("location", e.target.value)} placeholder="z. B. Waldvogel Leipheim" />
               </div>
               <div className="sm:col-span-2 flex gap-2 pt-1">
                 <Button type="submit" disabled={createMutation.isPending}>
@@ -317,8 +553,8 @@ export default function Kunden() {
       <Card className="bg-blue-50 border-blue-200">
         <CardContent className="py-3 px-4">
           <p className="text-xs text-blue-700">
-            <span className="font-semibold">Kunden-Login:</span> E-Mail-Adresse + Angebotsnummer.
-            Über „Nachricht senden" könnt ihr den Brautpaaren Texte und PDFs in den Portal-Eingang schicken.
+            <span className="font-semibold">Tipp:</span> Über „Formulare" könnt ihr pro Kunde festlegen,
+            welche Formulare im Kundenportal sichtbar sind. Adressdaten werden automatisch in den DJ-Vertrag übernommen.
           </p>
         </CardContent>
       </Card>
@@ -332,7 +568,7 @@ export default function Kunden() {
             <div className="p-8 text-center text-muted-foreground text-sm">Wird geladen…</div>
           ) : customers.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground text-sm">
-              Noch keine Kundenkonten angelegt. Klicke auf „Neuer Kunde".
+              Noch keine Kundenkonten angelegt.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -341,9 +577,9 @@ export default function Kunden() {
                   <tr className="border-b border-border bg-muted/30">
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Brautpaar</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Hochzeit</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">E-Mail</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Angebotsnr.</th>
-                    <th className="w-44 px-4 py-3" />
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Kontakt</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Angebot</th>
+                    <th className="w-72 px-4 py-3" />
                   </tr>
                 </thead>
                 <tbody>
@@ -351,39 +587,46 @@ export default function Kunden() {
                     const days = daysUntil(c.hochzeitsdatum);
                     return (
                       <tr key={c.id} className={`border-b border-border last:border-0 ${i % 2 === 0 ? "" : "bg-muted/10"}`}>
-                        <td className="px-4 py-3 font-medium">{c.name}</td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium">{c.name}</div>
+                          {(c.strasse || c.ort) && (
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {[c.strasse, [c.plz, c.ort].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+                            </div>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-muted-foreground">
                           {c.hochzeitsdatum ? (
                             <div>
-                              <span>{new Date(c.hochzeitsdatum + "T12:00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+                              <span>{new Date(c.hochzeitsdatum + "T12:00:00").toLocaleDateString("de-DE")}</span>
                               {days && (
                                 <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${days === "vergangen" ? "bg-gray-100 text-gray-500" : "bg-amber-100 text-amber-700"}`}>
                                   {days}
                                 </span>
                               )}
+                              {c.location && <div className="text-xs mt-0.5">{c.location}</div>}
                             </div>
                           ) : (
                             <span className="text-muted-foreground/50">–</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          <span className="inline-flex items-center gap-1.5">
-                            <Mail className="w-3 h-3" />
-                            {c.email}
-                          </span>
+                        <td className="px-4 py-3 text-muted-foreground text-xs">
+                          <div className="inline-flex items-center gap-1.5"><Mail className="w-3 h-3" />{c.email}</div>
+                          {c.telefon && <div className="mt-0.5">{c.telefon}</div>}
                         </td>
                         <td className="px-4 py-3">
                           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{c.angebotsnummer}</code>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-1 justify-end">
-                            <Button
-                              variant="outline" size="sm"
-                              className="gap-1.5 h-7 text-xs"
-                              onClick={() => setMessageCustomer(c)}
-                            >
-                              <Send className="w-3 h-3" />
-                              Nachricht
+                          <div className="flex items-center gap-1 justify-end flex-wrap">
+                            <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => setAssignCustomer(c)}>
+                              <ClipboardList className="w-3 h-3" /> Formulare
+                            </Button>
+                            <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => setMessageCustomer(c)}>
+                              <Send className="w-3 h-3" /> Nachricht
+                            </Button>
+                            <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => setEditCustomer(c)}>
+                              <Pencil className="w-3.5 h-3.5" />
                             </Button>
                             <Button
                               variant="ghost" size="icon"
@@ -408,9 +651,9 @@ export default function Kunden() {
         </CardContent>
       </Card>
 
-      {messageCustomer && (
-        <SendMessageModal customer={messageCustomer} onClose={() => setMessageCustomer(null)} />
-      )}
+      {messageCustomer && <SendMessageModal customer={messageCustomer} onClose={() => setMessageCustomer(null)} />}
+      {editCustomer && <EditCustomerModal customer={editCustomer} onClose={() => setEditCustomer(null)} />}
+      {assignCustomer && <AssignFormsModal customer={assignCustomer} onClose={() => setAssignCustomer(null)} />}
     </div>
   );
 }

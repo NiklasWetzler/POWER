@@ -8,6 +8,11 @@ export const customersTable = pgTable("customers", {
   email: text("email").notNull().unique(),
   angebotsnummer: text("angebotsnummer").notNull(),
   hochzeitsdatum: text("hochzeitsdatum"),
+  telefon: text("telefon"),
+  strasse: text("strasse"),
+  plz: text("plz"),
+  ort: text("ort"),
+  location: text("location"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
