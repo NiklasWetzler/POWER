@@ -9,23 +9,49 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Mail, ClipboardList, CheckCircle2, Clock, Circle,
+  ClipboardList, CheckCircle2, Clock, Circle,
   Send, Link2, ChevronDown, ChevronUp, BadgeCheck,
+  FileSignature, Music, Download,
 } from "lucide-react";
+
+type FormType = "dj-vertrag" | "musikfragebogen" | string;
 
 interface Submission {
   id: number;
+  formType: FormType;
   brautpaar: string;
   datum: string | null;
   location: string | null;
   status: "open" | "in_progress" | "done";
   emailSent: string;
   adminConfirmed: boolean;
+  hasPdf: boolean;
   createdAt: string;
 }
 
 interface SubmissionDetail extends Submission {
   formData: Record<string, unknown>;
+}
+
+const FORM_TYPE_LABELS: Record<string, string> = {
+  "dj-vertrag": "DJ-Vertrag",
+  "musikfragebogen": "Musikfragebogen",
+};
+
+function FormTypeBadge({ type }: { type: FormType }) {
+  const isContract = type === "dj-vertrag";
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${
+        isContract
+          ? "bg-amber-50 text-amber-800 border-amber-200"
+          : "bg-indigo-50 text-indigo-800 border-indigo-200"
+      }`}
+    >
+      {isContract ? <FileSignature className="w-3 h-3" /> : <Music className="w-3 h-3" />}
+      {FORM_TYPE_LABELS[type] ?? type}
+    </span>
+  );
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -101,21 +127,64 @@ function Section({ title, rows }: { title: string; rows:{label:string;display:st
   );
 }
 
-function DetailPanel({ id }: { id: number }) {
-  const { data, isLoading, isError } = useQuery<SubmissionDetail>({
-    queryKey: ["questionnaire-detail", id],
-    queryFn: async () => {
-      const res = await fetch(`/api/questionnaire/submissions/${id}`, { credentials: "include" });
-      if (!res.ok) throw new Error("Fehler");
-      return res.json() as Promise<SubmissionDetail>;
-    },
-  });
+function ContractDetailPanel({ data }: { data: SubmissionDetail }) {
+  const fd = data.formData as Record<string, string | undefined>;
+  const rows: { label: string; display: string }[] = [
+    fd.auftraggeberName ? { label: "Auftraggeber", display: fd.auftraggeberName } : null,
+    fd.strasse ? { label: "Straße & Nr.", display: fd.strasse } : null,
+    (fd.plz || fd.ort)
+      ? { label: "PLZ / Ort", display: `${fd.plz ?? ""} ${fd.ort ?? ""}`.trim() }
+      : null,
+    fd.telefon ? { label: "Telefon", display: fd.telefon } : null,
+    fd.email ? { label: "E-Mail", display: fd.email } : null,
+    fd.veranstaltungsort ? { label: "Veranstaltungsort", display: fd.veranstaltungsort } : null,
+    fd.datum ? { label: "Datum", display: fd.datum } : null,
+  ].filter(Boolean) as { label: string; display: string }[];
 
-  if (isLoading) return <div className="p-6 text-sm text-muted-foreground">Wird geladen…</div>;
-  if (isError||!data) return <div className="p-6 text-sm text-destructive">Fehler beim Laden.</div>;
+  return (
+    <div className="px-6 py-5 bg-muted/20 border-t border-border space-y-4">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+            Unterzeichneter DJ-Vertrag
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Eingegangen am{" "}
+            {new Date(data.createdAt).toLocaleString("de-DE", {
+              day: "2-digit", month: "2-digit", year: "numeric",
+              hour: "2-digit", minute: "2-digit",
+            })}
+            {" Uhr"}
+          </p>
+        </div>
+        {data.hasPdf && (
+          <Button asChild size="sm" className="gap-2">
+            <a
+              href={`/api/questionnaire/submissions/${data.id}/pdf`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Download className="w-4 h-4" />
+              Signierten Vertrag (PDF) herunterladen
+            </a>
+          </Button>
+        )}
+      </div>
 
+      <Section title="Vertragsdaten" rows={rows} />
+
+      {!data.hasPdf && (
+        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+          Für diesen Vertrag ist kein PDF gespeichert.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function QuestionnaireDetailPanel({ data }: { data: SubmissionDetail }) {
   const s = parseFormData(data.formData);
-  const hasContent = Object.values(s).some((r)=>r.length>0);
+  const hasContent = Object.values(s).some((r) => r.length > 0);
 
   return (
     <div className="px-6 py-5 bg-muted/20 border-t border-border space-y-5">
@@ -131,6 +200,24 @@ function DetailPanel({ id }: { id: number }) {
       }
     </div>
   );
+}
+
+function DetailPanel({ id }: { id: number }) {
+  const { data, isLoading, isError } = useQuery<SubmissionDetail>({
+    queryKey: ["questionnaire-detail", id],
+    queryFn: async () => {
+      const res = await fetch(`/api/questionnaire/submissions/${id}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Fehler");
+      return res.json() as Promise<SubmissionDetail>;
+    },
+  });
+
+  if (isLoading) return <div className="p-6 text-sm text-muted-foreground">Wird geladen…</div>;
+  if (isError || !data) return <div className="p-6 text-sm text-destructive">Fehler beim Laden.</div>;
+
+  return data.formType === "dj-vertrag"
+    ? <ContractDetailPanel data={data} />
+    : <QuestionnaireDetailPanel data={data} />;
 }
 
 export default function FragebogenAdmin() {
@@ -265,9 +352,11 @@ export default function FragebogenAdmin() {
                 <thead>
                   <tr className="border-b border-border bg-muted/30">
                     <th className="w-8 px-3 py-3" />
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Typ</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Brautpaar</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Datum</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Location</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">PDF</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Bestätigt</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Eingegangen</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
@@ -286,9 +375,26 @@ export default function FragebogenAdmin() {
                           <td className="px-3 py-3 text-muted-foreground">
                             {isExpanded?<ChevronUp className="w-4 h-4" />:<ChevronDown className="w-4 h-4" />}
                           </td>
+                          <td className="px-4 py-3"><FormTypeBadge type={s.formType} /></td>
                           <td className="px-4 py-3 font-medium">{s.brautpaar}</td>
                           <td className="px-4 py-3 text-muted-foreground">{s.datum??"–"}</td>
                           <td className="px-4 py-3 text-muted-foreground">{s.location??"–"}</td>
+                          <td className="px-4 py-3" onClick={(e)=>e.stopPropagation()}>
+                            {s.hasPdf ? (
+                              <Button asChild size="sm" variant="outline" className="gap-1.5 h-7 text-xs">
+                                <a
+                                  href={`/api/questionnaire/submissions/${s.id}/pdf`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                  PDF
+                                </a>
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">–</span>
+                            )}
+                          </td>
                           <td className="px-4 py-3" onClick={(e)=>e.stopPropagation()}>
                             <Button
                               size="sm"
@@ -319,7 +425,7 @@ export default function FragebogenAdmin() {
                         </tr>
                         {isExpanded && (
                           <tr key={`${s.id}-detail`}>
-                            <td colSpan={7} className="p-0">
+                            <td colSpan={9} className="p-0">
                               <DetailPanel id={s.id} />
                             </td>
                           </tr>

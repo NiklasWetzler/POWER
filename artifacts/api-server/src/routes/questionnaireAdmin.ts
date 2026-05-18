@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
+import { eq, isNotNull, sql } from "drizzle-orm";
 import { db, questionnaireSubmissionsTable } from "@workspace/db";
 import { createTransport, fromEmail } from "./questionnairePublic";
 
@@ -10,17 +10,55 @@ router.get("/questionnaire/submissions", async (req, res): Promise<void> => {
   const rows = await db
     .select({
       id: questionnaireSubmissionsTable.id,
+      formType: questionnaireSubmissionsTable.formType,
       brautpaar: questionnaireSubmissionsTable.brautpaar,
       datum: questionnaireSubmissionsTable.datum,
       location: questionnaireSubmissionsTable.location,
       status: questionnaireSubmissionsTable.status,
       emailSent: questionnaireSubmissionsTable.emailSent,
+      adminConfirmed: questionnaireSubmissionsTable.adminConfirmed,
+      hasPdf: sql<boolean>`${isNotNull(questionnaireSubmissionsTable.generatedPdfBase64)}`,
       createdAt: questionnaireSubmissionsTable.createdAt,
     })
     .from(questionnaireSubmissionsTable)
     .orderBy(questionnaireSubmissionsTable.createdAt);
 
-  res.json(rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })));
+  res.json(
+    rows.map((r) => ({
+      ...r,
+      hasPdf: Boolean(r.hasPdf),
+      createdAt: r.createdAt.toISOString(),
+    })),
+  );
+});
+
+// GET /questionnaire/submissions/:id/pdf — admin: download signed contract PDF
+router.get("/questionnaire/submissions/:id/pdf", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  if (Number.isNaN(id)) {
+    res.status(400).json({ error: "Ungültige ID." });
+    return;
+  }
+
+  const [sub] = await db
+    .select()
+    .from(questionnaireSubmissionsTable)
+    .where(eq(questionnaireSubmissionsTable.id, id));
+
+  if (!sub || !sub.generatedPdfBase64) {
+    res.status(404).json({ error: "PDF nicht gefunden." });
+    return;
+  }
+
+  const buf = Buffer.from(sub.generatedPdfBase64, "base64");
+  const safeName = (sub.brautpaar ?? "vertrag").replace(/[^a-z0-9]/gi, "_");
+  const prefix = sub.formType === "dj-vertrag" ? "DJ-Vertrag" : "Formular";
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${prefix}-${safeName}.pdf"`,
+  );
+  res.send(buf);
 });
 
 // GET /questionnaire/submissions/:id — full detail with formData (admin)
