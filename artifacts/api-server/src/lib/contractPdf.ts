@@ -457,18 +457,24 @@ export async function generateContractPdf(data: ContractData): Promise<Buffer> {
     doc.fillColor("black");
 
     // ── Add header + page numbers to all pages ───────────────────────────────
+    // IMPORTANT: writing in the margin area (y > height - bottomMargin) makes
+    // pdfkit auto-add a blank page after the write. We zero out the margins
+    // during this loop to prevent that, then restore them.
     const range = doc.bufferedPageRange();
     const totalPages = range.count;
     for (let i = 0; i < totalPages; i++) {
       doc.switchToPage(range.start + i);
-      // Top header
+      const origTop = doc.page.margins.top;
+      const origBottom = doc.page.margins.bottom;
+      doc.page.margins.top = 0;
+      doc.page.margins.bottom = 0;
+
       doc.font("Helvetica").fontSize(8.5).fillColor("#666").text(
         HEADER_TEXT,
         MARGIN_X,
         26,
         { width: CONTENT_W, align: "right", lineBreak: false },
       );
-      // Bottom page number
       doc.fontSize(9).fillColor("#666").text(
         `Seite ${i + 1} von ${totalPages}`,
         MARGIN_X,
@@ -476,8 +482,12 @@ export async function generateContractPdf(data: ContractData): Promise<Buffer> {
         { width: CONTENT_W, align: "center", lineBreak: false },
       );
       doc.fillColor("black");
+
+      doc.page.margins.top = origTop;
+      doc.page.margins.bottom = origBottom;
     }
 
+    doc.flushPages();
     doc.end();
   });
 }
