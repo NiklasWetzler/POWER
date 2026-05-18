@@ -144,6 +144,20 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
                   info@niwe-events.com
                 </a>
               </p>
+
+              <div className="mt-5 pt-4 border-t border-gray-100 text-center">
+                <p className="text-sm text-gray-600">
+                  Noch kein Kunde?{" "}
+                  <a
+                    href="https://niwe-events.com/kontakt/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2"
+                  >
+                    Jetzt Hochzeit anfragen!
+                  </a>
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
