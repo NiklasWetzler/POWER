@@ -123,7 +123,7 @@ export function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean 
       return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
           <div className="mb-8">
-            <Logo size="md" variant="framed" />
+            <Logo size="lg" variant="hero" />
           </div>
           {content}
         </div>

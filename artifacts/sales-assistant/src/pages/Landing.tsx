@@ -71,7 +71,7 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
           {/* Left: Branding */}
           <div className="space-y-6">
             <div>
-              <Logo size="xl" variant="framed" className="mb-6" />
+              <Logo size="xl" variant="hero" className="mb-7" />
               <h1 className="text-3xl font-bold tracking-tight text-gray-900 leading-tight">
                 Willkommen in eurem<br />
                 <span className="text-amber-500">Hochzeits-Portal</span>
