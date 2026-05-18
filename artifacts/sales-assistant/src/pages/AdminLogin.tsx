@@ -41,7 +41,7 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-gray-900 border-b border-gray-800">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center gap-4">
-          <Logo size="xs" variant="dark-frame" />
+          <Logo size="sm" variant="light" />
           <span className="text-xs text-amber-400/70 tracking-[0.3em] uppercase">Admin-Bereich</span>
           <div className="ml-auto">
             <Link href="/">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lock, ChevronRight } from "lucide-react";
+import { Lock } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,28 +69,16 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
       <div className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           {/* Left: Branding */}
-          <div className="space-y-6">
-            <div>
-              <Logo size="xl" variant="hero" className="mb-7" />
+          <div className="space-y-6 text-center md:text-left">
+            <div className="flex flex-col items-center md:items-start">
+              <Logo size="xl" variant="hero" className="mb-8" />
               <h1 className="text-3xl font-bold tracking-tight text-gray-900 leading-tight">
-                Willkommen in eurem<br />
-                <span className="text-amber-500">Hochzeits-Portal</span>
+                Willkommen bei<br />
+                <span className="text-amber-500">eurer Hochzeitsagentur</span>
               </h1>
-              <p className="mt-4 text-gray-500 text-base leading-relaxed">
-                Euer persönliches Portal für die Planung eurer Hochzeitsmusik. Füllt Formulare aus, verfolgt den Status und kommuniziert direkt mit eurem DJ-Team.
+              <p className="mt-4 text-gray-500 text-base leading-relaxed max-w-md">
+                Hier findet ihr alles für die Planung eures großen Tages an einem Ort — von ersten Absprachen bis zum Hochzeitstag.
               </p>
-            </div>
-            <div className="space-y-2">
-              {[
-                "Musikfragebogen online ausfüllen",
-                "Status eurer Anfragen einsehen",
-                "Direkte Abstimmung mit dem Team",
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-2 text-sm text-gray-600">
-                  <ChevronRight className="w-4 h-4 text-amber-400 shrink-0" />
-                  {item}
-                </div>
-              ))}
             </div>
           </div>
 

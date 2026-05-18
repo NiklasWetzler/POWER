@@ -57,10 +57,10 @@ function AdminSidebar({
         )}
       >
         {collapsed ? (
-          <Logo size="xs" variant="dark-frame" />
+          <Logo size="xs" variant="light" />
         ) : (
           <>
-            <Logo size="sm" variant="dark-frame" />
+            <Logo size="sm" variant="light" />
             <p className="text-[10px] text-amber-400/70 tracking-[0.3em] uppercase">
               Admin
             </p>
