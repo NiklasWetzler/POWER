@@ -384,10 +384,13 @@ export default function DJVertragPortal() {
     sigPadRef.current = new SignaturePad(canvas, {
       backgroundColor: "rgb(255,255,255)",
       penColor: "rgb(0,0,0)",
-      minWidth: 0.8,
-      maxWidth: 2.2,
+      minWidth: 1.2,
+      maxWidth: 3.0,
+      throttle: 0,
+      minDistance: 1,
     });
-    resizeCanvas();
+    // Use rAF so the canvas has its real layout size before we read it
+    requestAnimationFrame(resizeCanvas);
     window.addEventListener("resize", resizeCanvas);
     return () => {
       window.removeEventListener("resize", resizeCanvas);
@@ -421,24 +424,28 @@ export default function DJVertragPortal() {
     fsPadRef.current = new SignaturePad(canvas, {
       backgroundColor: "rgb(255,255,255)",
       penColor: "rgb(0,0,0)",
-      minWidth: 1.1,
-      maxWidth: 3.0,
+      minWidth: 1.4,
+      maxWidth: 3.6,
+      throttle: 0,
+      minDistance: 1,
     });
-    resizeCanvas();
 
-    // Preload existing signature from inline pad, if any
-    if (sigPadRef.current && !sigPadRef.current.isEmpty()) {
-      const data = sigPadRef.current.toDataURL("image/png");
-      const img = new Image();
-      img.onload = () => {
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        // draw centered, scaled to fit
-        const rect = canvas.getBoundingClientRect();
-        ctx.drawImage(img, 0, 0, rect.width, rect.height);
-      };
-      img.src = data;
-    }
+    // Defer to rAF so the overlay has finished layout before we size the canvas
+    requestAnimationFrame(() => {
+      resizeCanvas();
+      // Preload existing signature from inline pad, if any
+      if (sigPadRef.current && !sigPadRef.current.isEmpty()) {
+        const data = sigPadRef.current.toDataURL("image/png");
+        const img = new Image();
+        img.onload = () => {
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          const rect = canvas.getBoundingClientRect();
+          ctx.drawImage(img, 0, 0, rect.width, rect.height);
+        };
+        img.src = data;
+      }
+    });
 
     window.addEventListener("resize", resizeCanvas);
     return () => {
@@ -635,28 +642,24 @@ export default function DJVertragPortal() {
                 </Button>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setFullscreen(true)}
-              className="w-full rounded-lg border-2 border-dashed border-amber-400 bg-white overflow-hidden hover:bg-amber-50/40 transition-colors text-left"
-              title="Tippen zum Unterschreiben im Vollbildmodus"
-            >
-              <div className="relative">
-                <canvas
-                  ref={canvasRef}
-                  className="w-full block touch-none pointer-events-none"
-                  style={{ height: "240px" }}
-                />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <span className="text-amber-600 text-sm font-medium bg-white/70 px-3 py-1.5 rounded-full border border-amber-200 shadow-sm flex items-center gap-1.5">
-                    <Maximize2 className="w-4 h-4" />
-                    Hier tippen, um zu unterschreiben
-                  </span>
-                </div>
-              </div>
-            </button>
+            <div className="relative w-full rounded-lg border-2 border-dashed border-amber-400 bg-white overflow-hidden">
+              <canvas
+                ref={canvasRef}
+                className="w-full block"
+                style={{ height: "260px", touchAction: "none" }}
+              />
+              <button
+                type="button"
+                onClick={() => setFullscreen(true)}
+                className="absolute top-2 right-2 z-10 inline-flex items-center gap-1.5 rounded-md bg-white/95 hover:bg-white border border-amber-300 px-2.5 py-1.5 text-xs font-medium text-amber-700 shadow-sm"
+                title="Vollbildmodus öffnen"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                Vergrößern
+              </button>
+            </div>
             <p className="text-xs text-muted-foreground text-center">
-              Tippt auf das Feld, um es zu vergrößern und bequem mit dem Finger zu unterschreiben.
+              Mit dem Finger oder der Maus direkt im Feld unterschreiben — oder „Vergrößern" für den Vollbildmodus.
             </p>
           </section>
 
