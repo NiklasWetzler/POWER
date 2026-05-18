@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Sparkles,
-  Music2,
   ClipboardCheck,
   Heart,
   Cable,
@@ -125,14 +124,8 @@ export const NICE_TO_KNOW_TOPICS: Topic[] = [
           dB) lockert die Stimmung, ohne den Smalltalk zu stören.
         </li>
         <li>
-          <strong>Wunschlieder von Gästen</strong> funktionieren am besten{" "}
-          <em>nach Mitternacht</em>. Davor halten wir den roten Faden der Feier.
-        </li>
-        <li>
-          Ein{" "}
-          <Music2 className="w-3 h-3 inline -mt-0.5" />{" "}
-          <strong>Lieblingssong des Brautpaares</strong> zum Anstoßen vor dem Essen – kleine
-          Geste, große Wirkung.
+          <strong>Wunschlieder von Gästen</strong> sind jederzeit willkommen — wir bauen sie
+          passend zur Stimmung ein, damit der rote Faden des Abends erhalten bleibt.
         </li>
       </ul>
     ),
