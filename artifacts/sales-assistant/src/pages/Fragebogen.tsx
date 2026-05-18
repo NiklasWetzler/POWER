@@ -6,7 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ClipboardList, CheckCircle, Music2 } from "lucide-react";
+import { ClipboardList, CheckCircle } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 const GENRES = [
   "Pop", "Rock", "Charts / Aktuelles", "Oldies (60er–80er)", "90er / 2000er",
@@ -121,9 +122,8 @@ export function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean 
     if (!isAdminView) {
       return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
-          <div className="flex flex-col items-center gap-2 mb-8">
-            <Music2 className="w-8 h-8 text-amber-500" />
-            <span className="text-xl font-semibold tracking-wide text-gray-800">NIWE Weddings</span>
+          <div className="mb-8">
+            <Logo size="md" variant="framed" />
           </div>
           {content}
         </div>
@@ -465,10 +465,9 @@ export default function Fragebogen({ isAdminView = false }: { isAdminView?: bool
     <div className="min-h-screen bg-white flex flex-col">
       {/* Public header — clean, no sales branding */}
       <header className="border-b border-gray-100 bg-white sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Music2 className="w-6 h-6 text-amber-500" />
-          <span className="text-lg font-semibold tracking-wide text-gray-800">NIWE Weddings</span>
-          <span className="ml-auto text-sm text-gray-400">Musikfragebogen</span>
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          <Logo size="xs" />
+          <span className="ml-auto text-sm text-gray-400 tracking-wider uppercase text-[11px]">Musikfragebogen</span>
         </div>
       </header>
 

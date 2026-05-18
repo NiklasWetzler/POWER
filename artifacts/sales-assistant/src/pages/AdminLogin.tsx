@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Music2, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,10 +40,9 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-gray-900 border-b border-gray-800">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
-          <Music2 className="w-5 h-5 text-amber-400" />
-          <span className="text-sm font-bold tracking-widest uppercase text-white">NIWE Weddings</span>
-          <span className="text-xs text-gray-500 ml-2">Admin-Bereich</span>
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center gap-4">
+          <Logo size="xs" variant="dark-frame" />
+          <span className="text-xs text-amber-400/70 tracking-[0.3em] uppercase">Admin-Bereich</span>
           <div className="ml-auto">
             <Link href="/">
               <span className="text-xs text-gray-500 hover:text-gray-300 transition-colors cursor-pointer">

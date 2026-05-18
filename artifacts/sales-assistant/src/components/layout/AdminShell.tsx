@@ -6,9 +6,9 @@ import {
   Users,
   ClipboardList,
   LogOut,
-  Music2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
 
 const navItems = [
   { href: "/admin/fragebogen", label: "Fragebögen", icon: ClipboardList },
@@ -21,14 +21,9 @@ function AdminSidebar({ onLogout }: { onLogout?: () => void }) {
 
   return (
     <aside className="w-60 border-r border-border bg-gray-900 h-full flex flex-col flex-shrink-0">
-      <div className="p-5 border-b border-gray-800 flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
-          <Music2 className="w-3.5 h-3.5 text-amber-400" />
-        </div>
-        <div>
-          <p className="text-xs font-bold tracking-widest uppercase text-white">NIWE Weddings</p>
-          <p className="text-[10px] text-gray-500 tracking-wider uppercase">Admin</p>
-        </div>
+      <div className="p-5 border-b border-gray-800 flex flex-col items-center gap-2">
+        <Logo size="sm" variant="dark-frame" />
+        <p className="text-[10px] text-amber-400/70 tracking-[0.3em] uppercase">Admin</p>
       </div>
 
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">

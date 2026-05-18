@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Music2, Lock, ChevronRight } from "lucide-react";
+import { Lock, ChevronRight } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,14 +48,13 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <header className="border-b border-gray-100 bg-white">
-        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
-            <Music2 className="w-5 h-5 text-amber-500" />
-          </div>
-          <div>
-            <p className="text-sm font-bold tracking-widest uppercase text-gray-800">NIWE Weddings</p>
-            <p className="text-[10px] text-gray-400 tracking-wider uppercase">Kundenportal</p>
-          </div>
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
+          <Link href="/">
+            <div className="cursor-pointer flex items-center gap-3">
+              <Logo size="sm" />
+              <span className="text-[10px] text-gray-400 tracking-wider uppercase hidden sm:inline">Kundenportal</span>
+            </div>
+          </Link>
           <div className="ml-auto">
             <Link href="/admin">
               <span className="text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
@@ -71,10 +71,10 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
           {/* Left: Branding */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900 leading-tight">
-                NIWE<br />
-                <span className="text-amber-500">WEDDINGS</span><br />
-                APP
+              <Logo size="xl" variant="framed" className="mb-6" />
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 leading-tight">
+                Willkommen in eurem<br />
+                <span className="text-amber-500">Hochzeits-Portal</span>
               </h1>
               <p className="mt-4 text-gray-500 text-base leading-relaxed">
                 Euer persönliches Portal für die Planung eurer Hochzeitsmusik. Füllt Formulare aus, verfolgt den Status und kommuniziert direkt mit eurem DJ-Team.

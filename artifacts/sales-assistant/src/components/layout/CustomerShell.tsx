@@ -1,9 +1,10 @@
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Music2, Home, FileText, Inbox, Mail, LogOut } from "lucide-react";
+import { Home, FileText, Inbox, Mail, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
+import { Logo } from "@/components/Logo";
 
 const navItems: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; key?: string }[] = [
   { href: "/portal", label: "Startseite", icon: Home, exact: true },
@@ -30,13 +31,12 @@ export function CustomerShell({ children, onLogout }: { children: React.ReactNod
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Top nav */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-4 h-14">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
-              <Music2 className="w-3.5 h-3.5 text-amber-500" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-4 h-16">
+          <Link href="/portal">
+            <div className="cursor-pointer">
+              <Logo size="xs" />
             </div>
-            <span className="text-sm font-bold tracking-widest uppercase text-gray-800">NIWE Weddings</span>
-          </div>
+          </Link>
 
           <nav className="flex-1 flex items-center gap-1 ml-4">
             {navItems.map(({ href, label, icon: Icon, exact, key }) => {

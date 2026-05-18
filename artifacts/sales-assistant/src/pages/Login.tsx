@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Music2, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,10 +44,9 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <header className="border-b border-gray-100 bg-white sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Music2 className="w-6 h-6 text-amber-500" />
-          <span className="text-lg font-semibold tracking-wide text-gray-800">NIWE Weddings</span>
-          <span className="ml-auto text-sm text-gray-400">Admin-Bereich</span>
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          <Logo size="xs" />
+          <span className="ml-auto text-sm text-gray-400 tracking-wider uppercase text-[11px]">Admin-Bereich</span>
         </div>
       </header>
 
