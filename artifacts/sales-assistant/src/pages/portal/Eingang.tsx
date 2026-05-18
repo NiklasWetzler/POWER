@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, MailOpen, Paperclip, Inbox, Download } from "lucide-react";
+import { Mail, MailOpen, Paperclip, Inbox, Download, CalendarDays } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ interface Message {
   body: string;
   pdfFilename: string | null;
   hasPdf: boolean;
+  icalAppointmentId: number | null;
   readAt: string | null;
   createdAt: string;
 }
@@ -127,6 +128,17 @@ export default function Eingang() {
                         >
                           <Download className="w-4 h-4" />
                           {msg.pdfFilename ?? "Anhang.pdf"}
+                        </a>
+                      </div>
+                    )}
+                    {msg.icalAppointmentId && (
+                      <div className="mt-4 pt-3 border-t border-gray-100">
+                        <a
+                          href={`/api/customer/appointments/${msg.icalAppointmentId}/ical`}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-emerald-200 bg-emerald-50 text-sm text-emerald-700 hover:bg-emerald-100 transition-colors"
+                        >
+                          <CalendarDays className="w-4 h-4" />
+                          In Kalender speichern (.ics)
                         </a>
                       </div>
                     )}

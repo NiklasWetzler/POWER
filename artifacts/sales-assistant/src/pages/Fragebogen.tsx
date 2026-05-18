@@ -228,6 +228,20 @@ export function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean 
               ))}
             </div>
             <div className="space-y-1">
+              <Label htmlFor="spotifyPlaylist">Spotify-Playlist (Link)</Label>
+              <Input
+                id="spotifyPlaylist"
+                type="url"
+                placeholder="https://open.spotify.com/playlist/…"
+                {...register("spotifyPlaylist")}
+                data-testid="input-spotify-playlist"
+              />
+              <p className="text-xs text-muted-foreground">
+                Ihr könnt eure Wunschliste als Spotify-Playlist teilen. In Spotify auf die Playlist → Teilen → Link kopieren.
+                Stellt sicher, dass die Playlist auf „Öffentlich" steht, damit wir sie ansehen können.
+              </p>
+            </div>
+            <div className="space-y-1">
               <Label htmlFor="verboten">Welche Songs oder Künstler dürfen auf keinen Fall gespielt werden?</Label>
               <Input id="verboten" {...register("verboten")} data-testid="input-verboten" />
             </div>

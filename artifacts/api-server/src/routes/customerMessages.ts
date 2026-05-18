@@ -19,6 +19,7 @@ router.get("/customer/messages", requireCustomer, async (req, res): Promise<void
       body: customerMessagesTable.body,
       pdfFilename: customerMessagesTable.pdfFilename,
       hasPdf: sql<boolean>`${customerMessagesTable.pdfBase64} IS NOT NULL`,
+      icalAppointmentId: customerMessagesTable.icalAppointmentId,
       readAt: customerMessagesTable.readAt,
       createdAt: customerMessagesTable.createdAt,
     })

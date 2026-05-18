@@ -10,6 +10,7 @@ export const customerMessagesTable = pgTable("customer_messages", {
   body: text("body").notNull(),
   pdfFilename: text("pdf_filename"),
   pdfBase64: text("pdf_base64"),
+  icalAppointmentId: integer("ical_appointment_id"),
   readAt: timestamp("read_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

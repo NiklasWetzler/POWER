@@ -54,6 +54,7 @@ export function buildEmailHtml(brautpaar: string, datum: string | undefined, loc
     row("Bevorzugte Genres", genres),
     row("Zu vermeiden", data["vermeiden"]),
     row("Lieblingssongs / Künstler", songs),
+    row("Spotify-Playlist", data["spotifyPlaylist"]),
     row("Verbotene Songs / Künstler", data["verboten"]),
   ].join(""));
 
@@ -165,7 +166,7 @@ Location:  ${location ?? "–"}
 ──── 1. ALLGEMEINE ANGABEN ────────────────
 ${tf("Anzahl Gäste", fd["gaeste"])}${tf("Durchschnittsalter", alterList.join(", "))}${tf("Altersverteilung", fd["altersverteilung"])}
 ──── 2. MUSIKGESCHMACK ────────────────────
-${tf("Genres", genres.join(", "))}${tf("Zu vermeiden", fd["vermeiden"])}${tf("Lieblingssongs / Künstler", songs)}${tf("Verbotene Songs", fd["verboten"])}
+${tf("Genres", genres.join(", "))}${tf("Zu vermeiden", fd["vermeiden"])}${tf("Lieblingssongs / Künstler", songs)}${tf("Spotify-Playlist", fd["spotifyPlaylist"])}${tf("Verbotene Songs", fd["verboten"])}
 ──── 3. MUSIKVERLAUF DER FEIER ────────────
 ${tf("Sektempfang Musik", fd["sektempfangMusik"])}${tf("Sektempfang Stil", fd["sektStil"])}${tf("Essen Musik", fd["essensMusik"])}${tf("Essen Stil", fd["essensStil"])}${tf("Eröffnungstanz", fd["eröffnungstanz"])}${tf("Eröffnungstanz Song", fd["eröffnungSong"])}${tf("Art des Tanzes", Array.isArray(fd["eröffnungTyp"]) ? (fd["eröffnungTyp"] as string[]).join(", ") : fd["eröffnungTyp"])}${tf("Einzug", fd["einzug"])}${tf("Torte", fd["torte"])}${tf("Brautstraußwurf", fd["brautstrauss"])}${tf("Sonstige Punkte", fd["sonstigePunkte"])}${tf("Gastwünsche", fd["gästeWünsche"])}
 ──── 4. TECHNIK & ABLAUF ──────────────────

@@ -45,8 +45,7 @@ async function createInboxConfirmation(
   const body =
     `Euer Termin mit NIWE Weddings wurde bestätigt:\n\n` +
     `📅 ${dateStr}\n\n` +
-    `Ihr könnt den Termin direkt in euren Kalender übernehmen:\n` +
-    `👉 In Kalender speichern: /api/customer/appointments/${appointmentId}/ical\n\n` +
+    `Ihr könnt den Termin mit dem Button unten direkt in euren Kalender übernehmen.\n\n` +
     `Eine Erinnerung erhaltet ihr 1 Tag und 1 Stunde vor dem Termin hier im Posteingang.\n\n` +
     `Wir freuen uns auf euch!\n— NIWE Weddings`;
 
@@ -54,6 +53,7 @@ async function createInboxConfirmation(
     customerId,
     subject,
     body,
+    icalAppointmentId: appointmentId,
   });
 }
 

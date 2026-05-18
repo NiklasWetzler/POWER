@@ -48,6 +48,7 @@ async function runReminderTick(): Promise<void> {
         `Kurze Erinnerung — euer Termin mit NIWE Weddings ist morgen:\n\n` +
         `📅 ${formatDe(a.finalAt)}\n\n` +
         `Falls noch etwas dazwischenkommt, meldet euch bitte rechtzeitig.\n— NIWE Weddings`,
+      icalAppointmentId: a.id,
     });
     await db
       .update(appointmentsTable)
@@ -77,6 +78,7 @@ async function runReminderTick(): Promise<void> {
         `Euer Termin mit NIWE Weddings beginnt in Kürze:\n\n` +
         `📅 ${formatDe(a.finalAt)}\n\n` +
         `Wir freuen uns auf euch!\n— NIWE Weddings`,
+      icalAppointmentId: a.id,
     });
     await db
       .update(appointmentsTable)
