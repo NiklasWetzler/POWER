@@ -41,15 +41,19 @@ router.post("/questionnaire/submit", async (req, res): Promise<void> => {
 
   const safeFormData = formData ?? {};
 
+  const customerId = req.session.customerId ?? null;
+
   const [submission] = await db
     .insert(questionnaireSubmissionsTable)
     .values({
+      customerId,
       brautpaar,
       datum: datum ?? null,
       location: location ?? null,
       formData: JSON.stringify(safeFormData),
       status: "open",
       emailSent: "false",
+      adminConfirmed: false,
     })
     .returning();
 

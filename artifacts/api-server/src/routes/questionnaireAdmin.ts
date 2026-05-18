@@ -67,6 +67,25 @@ router.patch("/questionnaire/submissions/:id/status", async (req, res): Promise<
   res.json({ success: true, id: updated.id, status });
 });
 
+// PATCH /questionnaire/submissions/:id/confirm — admin confirms a submission
+router.patch("/questionnaire/submissions/:id/confirm", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  const { confirmed } = req.body as { confirmed?: boolean };
+
+  const [updated] = await db
+    .update(questionnaireSubmissionsTable)
+    .set({ adminConfirmed: confirmed ?? true })
+    .where(eq(questionnaireSubmissionsTable.id, id))
+    .returning({ id: questionnaireSubmissionsTable.id, adminConfirmed: questionnaireSubmissionsTable.adminConfirmed });
+
+  if (!updated) {
+    res.status(404).json({ error: "Fragebogen nicht gefunden." });
+    return;
+  }
+
+  res.json({ success: true, id: updated.id, adminConfirmed: updated.adminConfirmed });
+});
+
 // POST /questionnaire/send-link — send questionnaire link to a couple (admin)
 router.post("/questionnaire/send-link", async (req, res): Promise<void> => {
   const { brautpaarName, email } = req.body as { brautpaarName?: string; email?: string };

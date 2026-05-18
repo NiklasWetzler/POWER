@@ -7,21 +7,29 @@ import dashboardRouter from "./dashboard";
 import questionnairePublicRouter from "./questionnairePublic";
 import questionnaireAdminRouter from "./questionnaireAdmin";
 import authRouter from "./auth";
+import customerAuthRouter from "./customerAuth";
+import customerPortalRouter from "./customerPortal";
+import adminCustomersRouter from "./adminCustomers";
 import { requireAdmin } from "../lib/authMiddleware";
 
 const router: IRouter = Router();
 
 // ── Public (no auth required) ──────────────────────────────
 router.use(authRouter);
+router.use(customerAuthRouter);
 router.use(healthRouter);
 router.use(questionnairePublicRouter);
 
-// ── Admin (session required) ───────────────────────────────
+// ── Customer portal (customer session required) ────────────
+router.use(customerPortalRouter);
+
+// ── Admin (admin session required) ────────────────────────
 router.use(requireAdmin);
 router.use(prospectsRouter);
 router.use(emailsRouter);
 router.use(campaignsRouter);
 router.use(dashboardRouter);
 router.use(questionnaireAdminRouter);
+router.use(adminCustomersRouter);
 
 export default router;

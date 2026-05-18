@@ -4,102 +4,126 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
-import { Shell } from "@/components/layout/Shell";
-import Dashboard from "@/pages/Dashboard";
-import Campaigns from "@/pages/Campaigns";
-import CampaignDetail from "@/pages/CampaignDetail";
-import Prospects from "@/pages/Prospects";
-import ProspectDetail from "@/pages/ProspectDetail";
-import Emails from "@/pages/Emails";
-import Compose from "@/pages/Compose";
-import Fragebogen from "@/pages/Fragebogen";
-import FragebogenAdmin from "@/pages/FragebogenAdmin";
-import Login from "@/pages/Login";
+
+// Auth contexts
 import { AuthContext, useAuth, useAuthProvider } from "@/hooks/useAuth";
+import { CustomerAuthContext, useCustomerAuth, useCustomerAuthProvider } from "@/hooks/useCustomerAuth";
+
+// Layouts
+import { AdminShell } from "@/components/layout/AdminShell";
+import { CustomerShell } from "@/components/layout/CustomerShell";
+
+// Public pages
+import Landing from "@/pages/Landing";
+import Fragebogen from "@/pages/Fragebogen";
+import AdminLogin from "@/pages/AdminLogin";
+
+// Customer portal pages
+import Formulare from "@/pages/portal/Formulare";
+import UebermittelteFormulare from "@/pages/portal/UebermittelteFormulare";
+import MusikFragebogenPortal from "@/pages/portal/MusikFragebogenPortal";
+
+// Admin pages
+import FragebogenAdmin from "@/pages/FragebogenAdmin";
+import Kunden from "@/pages/admin/Kunden";
+import Dashboard from "@/pages/Dashboard";
 
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { refetchOnWindowFocus: false, retry: 1 },
-  },
+  defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
 });
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { loggedIn, loading } = useAuth();
+// ── Customer auth guard ──────────────────────────────────────
+function CustomerRoute({ children }: { children: React.ReactNode }) {
+  const { loggedIn, loading, logout } = useCustomerAuth();
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    if (!loading && !loggedIn) {
-      navigate("/login");
-    }
+    if (!loading && !loggedIn) navigate("/");
   }, [loggedIn, loading, navigate]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">
-        Wird geladen…
-      </div>
-    );
-  }
-
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">Wird geladen…</div>;
   if (!loggedIn) return null;
 
-  return <>{children}</>;
+  return <CustomerShell onLogout={logout}>{children}</CustomerShell>;
 }
 
+// ── Admin auth guard ─────────────────────────────────────────
 function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { logout } = useAuth();
-  return (
-    <ProtectedRoute>
-      <Shell onLogout={logout}>{children}</Shell>
-    </ProtectedRoute>
-  );
+  const { loggedIn, loading, logout } = useAuth();
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!loading && !loggedIn) navigate("/admin");
+  }, [loggedIn, loading, navigate]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">Wird geladen…</div>;
+  if (!loggedIn) return null;
+
+  return <AdminShell onLogout={logout}>{children}</AdminShell>;
 }
 
-function LoginRoute() {
+// ── Landing redirect if already logged in ────────────────────
+function LandingRoute() {
+  const { loggedIn: customerLoggedIn, loading: cLoading, login } = useCustomerAuth();
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!cLoading && customerLoggedIn) navigate("/portal/formulare");
+  }, [customerLoggedIn, cLoading, navigate]);
+
+  if (cLoading || customerLoggedIn) return null;
+  return <Landing onLogin={login} />;
+}
+
+// ── Admin login redirect if already logged in ────────────────
+function AdminLoginRoute() {
   const { loggedIn, loading, login } = useAuth();
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    if (!loading && loggedIn) navigate("/fragebogen");
+    if (!loading && loggedIn) navigate("/admin/fragebogen");
   }, [loggedIn, loading, navigate]);
 
   if (loading || loggedIn) return null;
-  return <Login onLogin={login} />;
+  return <AdminLogin onLogin={login} />;
 }
 
+// ── Router ───────────────────────────────────────────────────
 function Router() {
   return (
     <Switch>
-      {/* Public — questionnaire for couples */}
-      <Route path="/">{() => <Fragebogen />}</Route>
+      {/* Public — NIWE WEDDINGS APP landing + customer login */}
+      <Route path="/">{() => <LandingRoute />}</Route>
+
+      {/* Legacy public questionnaire link (send-link emails go here) */}
+      <Route path="/fragebogen-oeffentlich">{() => <Fragebogen />}</Route>
+
+      {/* Customer portal */}
+      <Route path="/portal/formulare/musikfragebogen">
+        {() => <CustomerRoute><MusikFragebogenPortal /></CustomerRoute>}
+      </Route>
+      <Route path="/portal/formulare">
+        {() => <CustomerRoute><Formulare /></CustomerRoute>}
+      </Route>
+      <Route path="/portal/eingereicht">
+        {() => <CustomerRoute><UebermittelteFormulare /></CustomerRoute>}
+      </Route>
+      <Route path="/portal">
+        {() => { const [, nav] = useLocation(); useEffect(() => nav("/portal/formulare"), []); return null; }}
+      </Route>
 
       {/* Admin login */}
-      <Route path="/login">{() => <LoginRoute />}</Route>
+      <Route path="/admin">{() => <AdminLoginRoute />}</Route>
 
-      {/* Protected admin routes */}
-      <Route path="/dashboard">
-        <AdminRoute><Dashboard /></AdminRoute>
+      {/* Admin area */}
+      <Route path="/admin/fragebogen">
+        {() => <AdminRoute><FragebogenAdmin /></AdminRoute>}
       </Route>
-      <Route path="/prospects/:id">
-        {() => <AdminRoute><ProspectDetail /></AdminRoute>}
+      <Route path="/admin/kunden">
+        {() => <AdminRoute><Kunden /></AdminRoute>}
       </Route>
-      <Route path="/prospects">
-        <AdminRoute><Prospects /></AdminRoute>
-      </Route>
-      <Route path="/campaigns/:id">
-        {() => <AdminRoute><CampaignDetail /></AdminRoute>}
-      </Route>
-      <Route path="/campaigns">
-        <AdminRoute><Campaigns /></AdminRoute>
-      </Route>
-      <Route path="/compose">
-        <AdminRoute><Compose /></AdminRoute>
-      </Route>
-      <Route path="/emails">
-        <AdminRoute><Emails /></AdminRoute>
-      </Route>
-      <Route path="/fragebogen">
-        <AdminRoute><FragebogenAdmin /></AdminRoute>
+      <Route path="/admin/dashboard">
+        {() => <AdminRoute><Dashboard /></AdminRoute>}
       </Route>
 
       <Route component={NotFound} />
@@ -107,20 +131,25 @@ function Router() {
   );
 }
 
-function App() {
-  const auth = useAuthProvider();
+// ── App root ─────────────────────────────────────────────────
+function AppInner() {
+  const adminAuth = useAuthProvider();
+  const customerAuth = useCustomerAuthProvider();
+
   return (
-    <AuthContext.Provider value={auth}>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
+    <AuthContext.Provider value={adminAuth}>
+      <CustomerAuthContext.Provider value={customerAuth}>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Router />
+            </WouterRouter>
+            <Toaster />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </CustomerAuthContext.Provider>
     </AuthContext.Provider>
   );
 }
 
-export default App;
+export default AppInner;

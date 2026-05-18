@@ -8,6 +8,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "Charlie2025";
 declare module "express-session" {
   interface SessionData {
     isAdmin: boolean;
+    customerId: number;
   }
 }
 

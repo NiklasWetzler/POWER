@@ -1,15 +1,18 @@
-import { pgTable, text, serial, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { customersTable } from "./customers";
 
 export const questionnaireSubmissionsTable = pgTable("questionnaire_submissions", {
   id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customersTable.id),
   brautpaar: text("brautpaar").notNull(),
   datum: text("datum"),
   location: text("location"),
   formData: text("form_data").notNull(),
   status: text("status").notNull().default("open"),
   emailSent: text("email_sent").notNull().default("false"),
+  adminConfirmed: boolean("admin_confirmed").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

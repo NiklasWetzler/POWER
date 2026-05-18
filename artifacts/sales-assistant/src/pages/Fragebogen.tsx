@@ -21,7 +21,7 @@ const GAST_ALTER = [
   { id: "50plus", label: "50+" },
 ];
 
-function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean }) {
+export function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean }) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -81,6 +81,7 @@ function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean }) {
       const res = await fetch("/api/questionnaire/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           brautpaar: values.brautpaar || "",
           datum: values.datum || undefined,
@@ -486,7 +487,7 @@ export default function Fragebogen({ isAdminView = false }: { isAdminView?: bool
       <footer className="border-t border-gray-100 py-6 text-center text-xs text-gray-400">
         NIWE Weddings · NIWE Events · info@niwe-events.com
         <span className="mx-2">·</span>
-        <a href="/login" className="hover:text-gray-600 transition-colors">Admin</a>
+        <a href="/admin" className="hover:text-gray-600 transition-colors">Admin</a>
       </footer>
     </div>
   );
