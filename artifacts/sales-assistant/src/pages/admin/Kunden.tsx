@@ -23,6 +23,14 @@ interface Customer {
   plz: string | null;
   ort: string | null;
   location: string | null;
+  djKuenstler: string | null;
+  djSpielzeit: string | null;
+  djBemerkung: string | null;
+  djGage: string | null;
+  djVerlaengerung: string | null;
+  djAnzahlungProzent: string | null;
+  djAnzahlungFrist: string | null;
+  djSondervereinbarungen: string | null;
   createdAt: string;
 }
 
@@ -223,6 +231,14 @@ function EditCustomerModal({ customer, onClose }: { customer: Customer; onClose:
     plz: customer.plz ?? "",
     ort: customer.ort ?? "",
     location: customer.location ?? "",
+    djKuenstler: customer.djKuenstler ?? "Nik Wetzler",
+    djSpielzeit: customer.djSpielzeit ?? "21:00 Uhr bis 02:00 Uhr",
+    djBemerkung: customer.djBemerkung ?? "inklusive Hintergrundmusik zu Beginn nach vorheriger Absprache",
+    djGage: customer.djGage ?? "1.300,00 €",
+    djVerlaengerung: customer.djVerlaengerung ?? "100,00 €",
+    djAnzahlungProzent: customer.djAnzahlungProzent ?? "30 %",
+    djAnzahlungFrist: customer.djAnzahlungFrist ?? "14 Tagen",
+    djSondervereinbarungen: customer.djSondervereinbarungen ?? "",
   });
 
   const save = useMutation({
@@ -296,6 +312,57 @@ function EditCustomerModal({ customer, onClose }: { customer: Customer; onClose:
               <Input value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })} placeholder="z. B. Waldvogel Leipheim" />
             </div>
           </div>
+
+          {/* DJ-Vertrag Konditionen */}
+          <div className="pt-2 border-t border-gray-200">
+            <div className="flex items-center gap-2 mb-2">
+              <FileSignature className="w-4 h-4 text-amber-500" />
+              <h3 className="text-sm font-semibold text-gray-800">DJ-Vertrag Konditionen</h3>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Diese Werte erscheinen im Vertrag, den der Kunde im Portal sieht. Er kann sie nicht verändern.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>DJ / Künstler</Label>
+                <Input value={f.djKuenstler} onChange={(e) => setF({ ...f, djKuenstler: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Vereinbarte Spielzeit</Label>
+                <Input value={f.djSpielzeit} onChange={(e) => setF({ ...f, djSpielzeit: e.target.value })} />
+              </div>
+              <div className="space-y-1 sm:col-span-2">
+                <Label>Bemerkung</Label>
+                <Input value={f.djBemerkung} onChange={(e) => setF({ ...f, djBemerkung: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Gesamtgage (netto)</Label>
+                <Input value={f.djGage} onChange={(e) => setF({ ...f, djGage: e.target.value })} placeholder="z. B. 1.300,00 €" />
+              </div>
+              <div className="space-y-1">
+                <Label>Verlängerung pro Stunde</Label>
+                <Input value={f.djVerlaengerung} onChange={(e) => setF({ ...f, djVerlaengerung: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Anzahlung</Label>
+                <Input value={f.djAnzahlungProzent} onChange={(e) => setF({ ...f, djAnzahlungProzent: e.target.value })} placeholder="z. B. 30 %" />
+              </div>
+              <div className="space-y-1">
+                <Label>Frist für Anzahlung</Label>
+                <Input value={f.djAnzahlungFrist} onChange={(e) => setF({ ...f, djAnzahlungFrist: e.target.value })} placeholder="z. B. 14 Tagen" />
+              </div>
+              <div className="space-y-1 sm:col-span-2">
+                <Label>Sondervereinbarungen (§13, optional)</Label>
+                <Textarea
+                  rows={3}
+                  value={f.djSondervereinbarungen}
+                  onChange={(e) => setF({ ...f, djSondervereinbarungen: e.target.value })}
+                  placeholder="Bleibt leer, falls keine."
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={onClose}>Abbrechen</Button>
             <Button type="submit" disabled={save.isPending}>{save.isPending ? "Speichern…" : "Speichern"}</Button>

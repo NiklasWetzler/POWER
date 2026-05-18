@@ -55,7 +55,32 @@ router.get("/customer/forms", requireCustomer, async (req, res): Promise<void> =
   res.json(forms);
 });
 
-// GET /customer/me/info — full customer info (for form prefill)
+// Default DJ contract conditions (used as fallback if admin didn't override)
+export const DJ_CONTRACT_DEFAULTS = {
+  djKuenstler: "Nik Wetzler",
+  djSpielzeit: "21:00 Uhr bis 02:00 Uhr",
+  djBemerkung: "inklusive Hintergrundmusik zu Beginn nach vorheriger Absprache",
+  djGage: "1.300,00 €",
+  djVerlaengerung: "100,00 €",
+  djAnzahlungProzent: "30 %",
+  djAnzahlungFrist: "14 Tagen",
+  djSondervereinbarungen: "",
+};
+
+function resolveDjContract(c: typeof customersTable.$inferSelect) {
+  return {
+    djKuenstler: c.djKuenstler ?? DJ_CONTRACT_DEFAULTS.djKuenstler,
+    djSpielzeit: c.djSpielzeit ?? DJ_CONTRACT_DEFAULTS.djSpielzeit,
+    djBemerkung: c.djBemerkung ?? DJ_CONTRACT_DEFAULTS.djBemerkung,
+    djGage: c.djGage ?? DJ_CONTRACT_DEFAULTS.djGage,
+    djVerlaengerung: c.djVerlaengerung ?? DJ_CONTRACT_DEFAULTS.djVerlaengerung,
+    djAnzahlungProzent: c.djAnzahlungProzent ?? DJ_CONTRACT_DEFAULTS.djAnzahlungProzent,
+    djAnzahlungFrist: c.djAnzahlungFrist ?? DJ_CONTRACT_DEFAULTS.djAnzahlungFrist,
+    djSondervereinbarungen: c.djSondervereinbarungen ?? DJ_CONTRACT_DEFAULTS.djSondervereinbarungen,
+  };
+}
+
+// GET /customer/me/info — full customer info (for form prefill, incl. resolved DJ contract conditions)
 router.get("/customer/me/info", requireCustomer, async (req, res): Promise<void> => {
   const customerId = req.session.customerId!;
   const [c] = await db.select().from(customersTable).where(eq(customersTable.id, customerId));
@@ -63,7 +88,11 @@ router.get("/customer/me/info", requireCustomer, async (req, res): Promise<void>
     res.status(404).json({ error: "Kunde nicht gefunden." });
     return;
   }
-  res.json({ ...c, createdAt: c.createdAt.toISOString() });
+  res.json({
+    ...c,
+    createdAt: c.createdAt.toISOString(),
+    djContract: resolveDjContract(c),
+  });
 });
 
 // Submitted forms for current customer
@@ -90,6 +119,7 @@ router.get("/customer/submissions", requireCustomer, async (req, res): Promise<v
 // POST /customer/forms/dj-vertrag/submit — generate contract PDF + email + store
 router.post("/customer/forms/dj-vertrag/submit", requireCustomer, async (req, res): Promise<void> => {
   const customerId = req.session.customerId!;
+  // Customer-modifiable fields only (no contract conditions — those come from the admin record)
   const body = req.body as {
     auftraggeberName?: string;
     strasse?: string;
@@ -99,14 +129,6 @@ router.post("/customer/forms/dj-vertrag/submit", requireCustomer, async (req, re
     email?: string;
     veranstaltungsort?: string;
     datum?: string;
-    spielzeit?: string;
-    bemerkung?: string;
-    djKuenstler?: string;
-    gage?: string;
-    verlaengerungProStunde?: string;
-    anzahlungProzent?: string;
-    anzahlungFrist?: string;
-    sondervereinbarungen?: string;
     signatureDataUrl?: string;
   };
 
@@ -127,7 +149,9 @@ router.post("/customer/forms/dj-vertrag/submit", requireCustomer, async (req, re
     return;
   }
 
-  // Build full contract data
+  // Server-trusted DJ conditions from customer record (admin-controlled)
+  const dj = resolveDjContract(customer);
+
   const datumFormatted = body.datum
     ? new Date(body.datum + "T12:00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })
     : "—";
@@ -139,14 +163,14 @@ router.post("/customer/forms/dj-vertrag/submit", requireCustomer, async (req, re
     auftraggeberTelefonEmail: [body.telefon, body.email].filter(Boolean).join(" / ") || "—",
     veranstaltungsort: body.veranstaltungsort || "—",
     datum: datumFormatted,
-    djKuenstler: body.djKuenstler || "Nik Wetzler",
-    spielzeit: body.spielzeit || "—",
-    bemerkung: body.bemerkung || "—",
-    gage: body.gage || "—",
-    verlaengerungProStunde: body.verlaengerungProStunde || "100,00 €",
-    anzahlungProzent: body.anzahlungProzent || "30 %",
-    anzahlungFrist: body.anzahlungFrist || "14 Tagen",
-    sondervereinbarungen: body.sondervereinbarungen || "",
+    djKuenstler: dj.djKuenstler,
+    spielzeit: dj.djSpielzeit,
+    bemerkung: dj.djBemerkung,
+    gage: dj.djGage,
+    verlaengerungProStunde: dj.djVerlaengerung,
+    anzahlungProzent: dj.djAnzahlungProzent,
+    anzahlungFrist: dj.djAnzahlungFrist,
+    sondervereinbarungen: dj.djSondervereinbarungen,
     signatureDataUrl: body.signatureDataUrl,
     unterschriftDatum: new Date().toLocaleDateString("de-DE"),
   };
@@ -190,7 +214,7 @@ router.post("/customer/forms/dj-vertrag/submit", requireCustomer, async (req, re
         <p><strong>Telefon:</strong> ${body.telefon ?? "—"}</p>
         <p><strong>Veranstaltungsort:</strong> ${body.veranstaltungsort ?? "—"}</p>
         <p><strong>Datum:</strong> ${datumFormatted}</p>
-        <p><strong>Gage:</strong> ${body.gage ?? "—"}</p>
+        <p><strong>Gage:</strong> ${dj.djGage}</p>
         <p>Der vollständige Vertrag liegt als PDF im Anhang.</p>
         <hr>
         <p style="color:#888;font-size:12px">Übermittelt über das NIWE Weddings Portal.</p>

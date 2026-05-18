@@ -80,7 +80,12 @@ router.patch("/admin/customers/:id", async (req, res): Promise<void> => {
   const body = req.body as Record<string, string | undefined>;
 
   const updateFields: Record<string, string | null> = {};
-  const allowed = ["name", "email", "angebotsnummer", "hochzeitsdatum", "telefon", "strasse", "plz", "ort", "location"];
+  const allowed = [
+    "name", "email", "angebotsnummer", "hochzeitsdatum",
+    "telefon", "strasse", "plz", "ort", "location",
+    "djKuenstler", "djSpielzeit", "djBemerkung", "djGage",
+    "djVerlaengerung", "djAnzahlungProzent", "djAnzahlungFrist", "djSondervereinbarungen",
+  ];
   for (const key of allowed) {
     if (key in body) {
       const v = body[key];

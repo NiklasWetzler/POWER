@@ -13,6 +13,15 @@ export const customersTable = pgTable("customers", {
   plz: text("plz"),
   ort: text("ort"),
   location: text("location"),
+  // DJ-Vertrag Konditionen (vom Admin festgelegt)
+  djKuenstler: text("dj_kuenstler"),
+  djSpielzeit: text("dj_spielzeit"),
+  djBemerkung: text("dj_bemerkung"),
+  djGage: text("dj_gage"),
+  djVerlaengerung: text("dj_verlaengerung"),
+  djAnzahlungProzent: text("dj_anzahlung_prozent"),
+  djAnzahlungFrist: text("dj_anzahlung_frist"),
+  djSondervereinbarungen: text("dj_sondervereinbarungen"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
