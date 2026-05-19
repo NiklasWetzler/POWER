@@ -11,8 +11,19 @@ interface RenderInput {
   kind: CardKind;
   template: TemplateSpec;
   data: Record<string, unknown>;
-  photoBase64?: string | null; // data URL or base64 (dankeskarte only)
+  photoBase64?: string | null; // data URL or base64 (einladung inside / dankeskarte)
   aiBackgroundDataUrl?: string | null; // when set, replaces template bg + decoration
+}
+
+function dataUrlToBuffer(dataUrl: string | null | undefined): Buffer | null {
+  if (!dataUrl) return null;
+  try {
+    const raw = dataUrl.replace(/^data:image\/[a-zA-Z+]+;base64,/, "");
+    const buf = Buffer.from(raw, "base64");
+    return buf.length > 0 ? buf : null;
+  } catch {
+    return null;
+  }
 }
 
 function s(v: unknown): string {
@@ -419,6 +430,82 @@ function renderEinladung(
       { width: panelW - 2 * innerMargin, align: "center" });
 }
 
+function renderEinladungInside(
+  doc: PDFKit.PDFDocument,
+  spec: TemplateSpec,
+  data: Record<string, unknown>,
+  w: number,
+  h: number,
+  photoBuf: Buffer | null,
+) {
+  drawBackground(doc, spec, w, h);
+
+  const datum = s(data["datum"]) || "Sommer 2026";
+  const zeit = s(data["zeit"]) || "15:00 Uhr";
+  const location = s(data["location"]) || "Eure Hochzeitslocation";
+  const ort = s(data["ort"]) || "";
+  const rsvp = s(data["rsvp"]) || "Bitte um Rückmeldung bis vier Wochen vor dem Fest.";
+  const gruss = s(data["gruss"]) ||
+    "Wir würden uns von Herzen freuen, diesen besonderen Tag mit euch zu feiern.";
+
+  const margin = 8 * MM;
+  const photoH = h * 0.42;
+  const photoW = w - 2 * margin;
+  const photoR = 1.5 * MM;
+
+  if (photoBuf) {
+    doc.save();
+    doc.roundedRect(margin, margin, photoW, photoH, photoR).clip();
+    try {
+      doc.image(photoBuf, margin, margin, { cover: [photoW, photoH], align: "center", valign: "center" });
+    } catch {
+      doc.rect(margin, margin, photoW, photoH).fill(spec.accent);
+    }
+    doc.restore();
+    doc.save().lineWidth(0.4).strokeColor(spec.accent).opacity(0.5)
+      .roundedRect(margin, margin, photoW, photoH, photoR).stroke().restore();
+  } else {
+    doc.save().lineWidth(0.5).strokeColor(spec.accent).opacity(0.55).dash(3, { space: 3 })
+      .roundedRect(margin, margin, photoW, photoH, photoR).stroke().restore();
+    doc.font(pdfFont(spec, "italic")).fontSize(11).fillColor(spec.accent).opacity(0.75)
+      .text("Euer Foto", 0, margin + photoH / 2 - 6, { width: w, align: "center" });
+    doc.opacity(1);
+  }
+
+  const textTop = margin + photoH + 5 * MM;
+
+  drawCapsRule(doc, spec, "Wann & wo", w / 2, textTop, 7, 3, w * 0.12, spec.accent);
+
+  const datumFont = pdfFont(spec, "italic");
+  const datumSize = fitFontSize(doc, datum, datumFont, 24, w - 2 * margin);
+  doc.font(datumFont).fontSize(datumSize).fillColor(spec.primary)
+    .text(datum, margin, textTop + 6 * MM, { width: w - 2 * margin, align: "center" });
+
+  doc.font(pdfFont(spec, "regular")).fontSize(9).fillColor(spec.primary)
+    .text(`${zeit.toUpperCase()} · ${location}`.toUpperCase(), margin, doc.y + 2 * MM,
+      { width: w - 2 * margin, align: "center", characterSpacing: 1.5 });
+  if (ort) {
+    doc.font(pdfFont(spec, "italic")).fontSize(7.5).fillColor(spec.accent)
+      .text(ort, margin, doc.y + 1, { width: w - 2 * margin, align: "center" });
+  }
+
+  const grussClamped = gruss.length > 180 ? gruss.slice(0, 177).trimEnd() + "…" : gruss;
+  const rsvpClamped = rsvp.length > 140 ? rsvp.slice(0, 137).trimEnd() + "…" : rsvp;
+
+  doc.font(pdfFont(spec, "italic")).fontSize(8).fillColor(spec.primary)
+    .text(grussClamped, margin, doc.y + 4 * MM, {
+      width: w - 2 * margin, align: "center", lineGap: 2, height: h * 0.18, ellipsis: true,
+    });
+
+  // Anchor RSVP below the greeting if it grew past the bottom slot, otherwise pin near the page bottom.
+  const rsvpFloor = h - 13 * MM;
+  const rsvpY = Math.max(rsvpFloor, doc.y + 3 * MM);
+  doc.font(pdfFont(spec, "regular")).fontSize(6.5).fillColor(spec.accent)
+    .text(rsvpClamped, margin, rsvpY, {
+      width: w - 2 * margin, align: "center", lineGap: 1.5, height: h - rsvpY - 4 * MM, ellipsis: true,
+    });
+}
+
 function renderTischkarte(
   doc: PDFKit.PDFDocument,
   spec: TemplateSpec,
@@ -608,9 +695,14 @@ export function generateDesignPdf(input: RenderInput): Promise<Buffer> {
     try {
       const aiBg = input.aiBackgroundDataUrl ?? null;
       switch (input.kind) {
-        case "einladung":
+        case "einladung": {
           renderEinladung(doc, input.template, input.data, w, h, aiBg);
+          // Page 2: inside / details page (same page size, with photo + venue info)
+          doc.addPage({ size: [w, h], margin: 0 });
+          const photoBuf = dataUrlToBuffer(input.photoBase64);
+          renderEinladungInside(doc, input.template, input.data, w, h, photoBuf);
           break;
+        }
         case "tischkarte":
           renderTischkarte(doc, input.template, input.data, w, h, aiBg);
           break;

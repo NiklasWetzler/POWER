@@ -1,22 +1,13 @@
 import { Router, type IRouter } from "express";
 import rateLimit from "express-rate-limit";
-import { generateImage, isGeminiConfigured } from "@workspace/integrations-gemini-ai/image";
 import { requireCustomer } from "../lib/authMiddleware";
-import { KIND_SIZE_MM, type CardKind } from "../lib/designTemplates";
 
 const router: IRouter = Router();
 
-const KIND_VALUES = new Set<CardKind>([
-  "einladung",
-  "tischkarte",
-  "menuekarte",
-  "dankeskarte",
-]);
-
-// Hard cap per customer: max 10 requests/hour (×3 images = ≤30 images/hour)
+// Hard cap per customer: max 12 requests/hour (×3 images = ≤36 images/hour)
 const aiLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 10,
+  max: 12,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => `c${req.session?.customerId ?? "anon"}`,
@@ -24,72 +15,86 @@ const aiLimiter = rateLimit({
 });
 
 interface AiBgBody {
-  kind?: string;
   style?: string;
   prompt?: string;
   count?: number;
 }
 
+/** Style presets — each one is a hand-tuned Flux prompt that yields high-end
+ *  wedding-stationery cover art with the centre kept clear for typography. */
 const STYLE_PROMPTS: Record<string, string> = {
   "watercolor-floral":
-    "soft hand-painted watercolor wedding stationery, blush-pink and sage-green wildflowers, eucalyptus, peonies, ranunculus, gentle bleed edges, romantic and airy, professional bridal magazine quality",
+    "loose hand-painted watercolour wedding invitation artwork, blush peonies, eucalyptus and wildflowers wrapping the top and bottom of the card, soft bleed edges, pale cream paper background, romantic and airy, professional bridal stationery, no text",
   "gold-art-deco":
-    "elegant art-deco wedding card design, deep navy and ivory with thin geometric gold-foil lines, fans, sunbursts, mirrored borders, 1920s Gatsby refinement, luxury stationery",
+    "luxury art-deco wedding invitation, deep navy background with intricate gold-foil geometric border, sunburst fans and mirrored linework, 1920s Gatsby refinement, Vogue stationery, no text",
   "minimal-modern":
-    "ultra-minimalist editorial wedding invitation, pure off-white background with a single delicate hairline frame and one tiny abstract ink mark, plenty of negative space, Kinfolk magazine aesthetic",
+    "ultra-minimalist editorial wedding card, warm off-white paper, a single delicate hairline frame, one small abstract botanical ink mark, vast negative space, Kinfolk magazine aesthetic, no text",
   "boho-pampas":
-    "boho beige wedding card design, dried pampas grass, palm leaves, terracotta and warm cream tones, hand-drawn texture, organic and earthy, Pinterest wedding inspiration",
+    "boho wedding invitation, dried pampas grass, palm fronds and dried wildflowers, terracotta and warm cream palette, hand-drawn texture, organic earthy mood, Pinterest wedding inspiration, no text",
   "vintage-ivory":
-    "vintage parchment wedding invitation, aged ivory paper texture with subtle deckle edges, fine sepia botanical etching in the corners, classical engraving style",
+    "vintage parchment wedding card, aged ivory paper with subtle deckle edges, sepia botanical etching in the corners, classical engraving style, fine intaglio detail, no text",
   "wildflower-meadow":
-    "loose wildflower meadow watercolor wedding stationery, scattered daisies, lavender, baby's breath, soft pastel palette, illustrative and joyful",
+    "loose wildflower meadow watercolour wedding stationery, scattered daisies, lavender, baby's breath, pastel palette, joyful and illustrative, no text",
   "gold-monogram":
-    "luxurious cream wedding card with delicate gold-foil laurel wreath and thin metallic line frame, refined classical sophistication, magazine-quality stationery",
+    "luxurious cream wedding card with delicate gold-foil laurel wreath at the top and a thin metallic line frame, refined classical sophistication, magazine-quality stationery, no text",
   "moody-floral":
-    "moody dark-romance wedding card, deep burgundy and forest green florals on charcoal background, oil-painting style, dramatic and intimate, dark academia wedding",
+    "moody dark-romance wedding invitation, deep burgundy and forest green florals on charcoal background, oil-painting style, dramatic and intimate, dark academia, no text",
+  "blue-china":
+    "delft-blue wedding invitation, hand-painted indigo botanicals and chinoiserie florals on ivory, fine porcelain elegance, symmetrical wrap-around floral border, top and bottom heavy, centre empty, no text",
+  "soft-greenery":
+    "soft sage and ivory wedding invitation, watercolour eucalyptus and olive branches framing the card, gentle pastel greens, modern romantic, no text",
 };
 
-const KIND_LAYOUT_HINT: Record<CardKind, string> = {
-  einladung:
-    "portrait orientation wedding INVITATION card. Leave the entire center vertical band fully empty (no decoration, no marks at all) so a couple's names and date can be placed on top. Decoration must hug only the top, bottom and side margins.",
-  tischkarte:
-    "small landscape PLACE-CARD for wedding tables (90×55mm proportions). Keep the center totally clean for a guest name and table number. Tiny refined ornaments only in the top corners.",
-  menuekarte:
-    "tall portrait MENU card. Decorative ornaments only along the top header area and the bottom border. The whole middle is intentionally blank for course listings.",
-  dankeskarte:
-    "landscape THANK-YOU card. Left third reserved for a photo (leave it as a soft neutral rectangle area), the right two thirds intentionally clean for handwriting and signature. Floral or ornamental accents only along the outer edges.",
-};
-
-function buildPrompt(kind: CardKind, styleKey: string | undefined, custom: string | undefined): string {
+/** Build a Pollinations / Flux prompt for an A6-ish portrait wedding card cover. */
+function buildPrompt(styleKey: string | undefined, custom: string | undefined): string {
   const styleDirective =
     (styleKey && STYLE_PROMPTS[styleKey]) ||
     custom?.slice(0, 400) ||
     STYLE_PROMPTS["watercolor-floral"];
 
-  const [wMm, hMm] = KIND_SIZE_MM[kind];
-  const orientation = wMm >= hMm ? "landscape" : "portrait";
-
   return [
-    `Design ONE single elegant wedding-stationery card BACKGROUND artwork, ${orientation} ${wMm}x${hMm}mm aspect ratio.`,
+    "Single elegant wedding INVITATION cover artwork, portrait A6 proportions, edge-to-edge print-ready design.",
     `Style: ${styleDirective}.`,
-    `Layout: ${KIND_LAYOUT_HINT[kind]}`,
-    `ABSOLUTELY DO NOT include ANY letters, words, text, names, dates, numbers, monograms, signatures, alphabets, lorem ipsum, or any typographic characters in the image.`,
-    `No mockups, no card-on-table photos — produce ONLY the flat artwork itself that would print directly onto the card paper. Edge-to-edge.`,
-    `High-end professional graphic-designer quality, suitable for a luxury bridal magazine.`,
+    "Composition: decorative motifs wrap the top and bottom borders of the card while leaving the entire central vertical band intentionally EMPTY and clean for typography to be laid on top later.",
+    "ABSOLUTELY NO letters, words, names, dates, numbers, monograms, signatures, alphabets, calligraphy, lorem ipsum or any typographic characters of any kind anywhere in the image.",
+    "No mockups, no card-on-table photos, no shadows of a card. Just the flat printable artwork itself.",
+    "High-end professional graphic-designer quality, suitable for a luxury bridal magazine, sharp, clean, beautiful colour balance.",
   ].join(" ");
 }
 
+/** Call Pollinations.ai (free, no API key, Flux model) and return the image
+ *  as a data: URL we can pass directly to <img>/PDF. */
+async function pollinationsImage(prompt: string, seed: number): Promise<string> {
+  // Portrait A6-ish (105×148mm at ~6.5 px/mm ≈ 683×963). Round up a bit for
+  // crisp print previews; Flux handles 768×1152 well.
+  const width = 768;
+  const height = 1152;
+  const url =
+    `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
+    `?width=${width}&height=${height}` +
+    `&model=flux&nologo=true&enhance=true&private=true&seed=${seed}`;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 90_000);
+  let resp: Response;
+  try {
+    resp = await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!resp.ok) {
+    throw new Error(`pollinations responded ${resp.status}`);
+  }
+  const buf = Buffer.from(await resp.arrayBuffer());
+  if (buf.length === 0) throw new Error("pollinations returned empty body");
+  // Pollinations serves JPEG by default; honour the actual content-type header.
+  const ct = resp.headers.get("content-type") || "image/jpeg";
+  const safeCt = /^image\/(png|jpeg|jpg|webp)$/.test(ct) ? ct.replace("/jpg", "/jpeg") : "image/jpeg";
+  return `data:${safeCt};base64,${buf.toString("base64")}`;
+}
+
 router.post("/ai/card-background", requireCustomer, aiLimiter, async (req, res): Promise<void> => {
-  if (!isGeminiConfigured()) {
-    res.status(503).json({ error: "KI-Bildgenerierung ist gerade nicht konfiguriert." });
-    return;
-  }
   const body = req.body as AiBgBody;
-  const kind = body.kind;
-  if (!kind || typeof kind !== "string" || !KIND_VALUES.has(kind as CardKind)) {
-    res.status(400).json({ error: "Ungültiger Kartentyp." });
-    return;
-  }
   const styleKey = typeof body.style === "string" ? body.style : undefined;
   const customPrompt = typeof body.prompt === "string" ? body.prompt : undefined;
   if (styleKey && !STYLE_PROMPTS[styleKey] && !customPrompt) {
@@ -97,22 +102,28 @@ router.post("/ai/card-background", requireCustomer, aiLimiter, async (req, res):
     return;
   }
   const count = Math.min(Math.max(Number(body.count) || 3, 1), 3);
-  const prompt = buildPrompt(kind as CardKind, styleKey, customPrompt);
+  const prompt = buildPrompt(styleKey, customPrompt);
 
-  req.log.info({ kind, styleKey, count }, "Generating AI card backgrounds");
+  req.log.info({ styleKey, count }, "Generating AI invitation backgrounds via Pollinations");
 
-  try {
-    const results = await Promise.all(
-      Array.from({ length: count }).map(async () => {
-        const { b64_json, mimeType } = await generateImage(prompt);
-        return `data:${mimeType};base64,${b64_json}`;
-      }),
-    );
-    res.json({ images: results });
-  } catch (err) {
-    req.log.error({ err }, "AI background generation failed");
-    res.status(502).json({ error: "KI-Bildgenerierung gerade nicht verfügbar." });
+  // Use independent seeds so variants are visually distinct.
+  const seeds = Array.from({ length: count }, () => Math.floor(Math.random() * 1_000_000_000));
+  const settled = await Promise.allSettled(seeds.map((seed) => pollinationsImage(prompt, seed)));
+  const images: string[] = [];
+  const failures: unknown[] = [];
+  for (const r of settled) {
+    if (r.status === "fulfilled") images.push(r.value);
+    else failures.push(r.reason);
   }
+  if (images.length === 0) {
+    req.log.error({ failures }, "Pollinations image generation failed for all seeds");
+    res.status(502).json({ error: "KI-Bildgenerierung gerade nicht verfügbar. Bitte in 1–2 Minuten nochmal versuchen." });
+    return;
+  }
+  if (failures.length > 0) {
+    req.log.warn({ failures: failures.length, ok: images.length }, "Partial Pollinations success");
+  }
+  res.json({ images });
 });
 
 export default router;

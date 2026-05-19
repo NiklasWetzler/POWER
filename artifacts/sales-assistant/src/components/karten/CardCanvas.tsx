@@ -11,19 +11,22 @@ interface CardCanvasProps {
   /** rendered width in CSS px (height scales proportionally) */
   width?: number;
   className?: string;
+  /** For einladung: which face to render. "cover" = front w/ AI bg, "inside" = inner text+photo. */
+  page?: "cover" | "inside";
 }
 
 /**
  * SVG renderer for card previews. Mirrors `artifacts/api-server/src/lib/designPdf.ts`
  * so the on-screen preview matches the downloaded PDF as closely as possible.
  */
-export function CardCanvas({ kind, template, data, photoDataUrl, aiBackgroundDataUrl, width = 320, className }: CardCanvasProps) {
+export function CardCanvas({ kind, template, data, photoDataUrl, aiBackgroundDataUrl, width = 320, className, page = "cover" }: CardCanvasProps) {
   const [wMm, hMm] = KIND_SIZE_MM[kind];
   const scale = width / wMm;
   const h = hMm * scale;
   const vbW = wMm * 10;
   const vbH = hMm * 10;
   const font = fontStack(template);
+  const isInside = kind === "einladung" && page === "inside";
 
   return (
     <svg
@@ -33,31 +36,162 @@ export function CardCanvas({ kind, template, data, photoDataUrl, aiBackgroundDat
       viewBox={`0 0 ${vbW} ${vbH}`}
       className={className}
       role="img"
-      aria-label={`Vorschau ${kind} ${template.name}`}
+      aria-label={`Vorschau ${kind} ${template.name} ${page}`}
       style={{ display: "block", boxShadow: "0 6px 20px rgba(0,0,0,0.10)", borderRadius: 8 }}
     >
-      {aiBackgroundDataUrl ? (
-        <image
-          href={aiBackgroundDataUrl}
-          x={0}
-          y={0}
-          width={vbW}
-          height={vbH}
-          preserveAspectRatio="xMidYMid slice"
-        />
-      ) : (
+      {isInside ? (
         <>
           <rect width={vbW} height={vbH} fill={template.background} />
-          <Decoration template={template} w={vbW} h={vbH} />
+          <EinladungInside template={template} data={data} w={vbW} h={vbH} font={font} photoDataUrl={photoDataUrl} />
+        </>
+      ) : (
+        <>
+          {aiBackgroundDataUrl ? (
+            <image
+              href={aiBackgroundDataUrl}
+              x={0}
+              y={0}
+              width={vbW}
+              height={vbH}
+              preserveAspectRatio="xMidYMid slice"
+            />
+          ) : (
+            <>
+              <rect width={vbW} height={vbH} fill={template.background} />
+              <Decoration template={template} w={vbW} h={vbH} />
+            </>
+          )}
+          {kind === "einladung" && <Einladung template={template} data={data} w={vbW} h={vbH} font={font} aiBg={!!aiBackgroundDataUrl} />}
+          {kind === "tischkarte" && <Tischkarte template={template} data={data} w={vbW} h={vbH} font={font} aiBg={!!aiBackgroundDataUrl} />}
+          {kind === "menuekarte" && <Menuekarte template={template} data={data} w={vbW} h={vbH} font={font} aiBg={!!aiBackgroundDataUrl} />}
+          {kind === "dankeskarte" && (
+            <Dankeskarte template={template} data={data} w={vbW} h={vbH} font={font} photoDataUrl={photoDataUrl} aiBg={!!aiBackgroundDataUrl} />
+          )}
         </>
       )}
-      {kind === "einladung" && <Einladung template={template} data={data} w={vbW} h={vbH} font={font} aiBg={!!aiBackgroundDataUrl} />}
-      {kind === "tischkarte" && <Tischkarte template={template} data={data} w={vbW} h={vbH} font={font} aiBg={!!aiBackgroundDataUrl} />}
-      {kind === "menuekarte" && <Menuekarte template={template} data={data} w={vbW} h={vbH} font={font} aiBg={!!aiBackgroundDataUrl} />}
-      {kind === "dankeskarte" && (
-        <Dankeskarte template={template} data={data} w={vbW} h={vbH} font={font} photoDataUrl={photoDataUrl} aiBg={!!aiBackgroundDataUrl} />
-      )}
     </svg>
+  );
+}
+
+/** Wrap a text string into lines of at most `maxChars` characters. */
+function wrapLines(text: string, maxChars: number): string[] {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let cur = "";
+  for (const word of words) {
+    const next = (cur ? cur + " " : "") + word;
+    if (next.length > maxChars && cur) {
+      lines.push(cur);
+      cur = word;
+    } else {
+      cur = next;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+/** Inside / detail page of the invitation: photo on top, date + venue + RSVP below. */
+function EinladungInside({
+  template, data, w, h, font, photoDataUrl,
+}: { template: TemplateSpec; data: Record<string, string>; w: number; h: number; font: string; photoDataUrl?: string | null }) {
+  const datum = data.datum || "Sommer 2026";
+  const zeit = data.zeit || "15:00 Uhr";
+  const location = data.location || "Eure Hochzeitslocation";
+  const ort = data.ort || "";
+  const rsvp = data.rsvp || "Bitte um Rückmeldung bis vier Wochen vor dem Fest.";
+  const gruss = data.gruss ||
+    "Wir würden uns von Herzen freuen, diesen besonderen Tag mit euch zu feiern.";
+
+  const margin = 60;
+  const photoH = h * 0.42;
+  const photoW = w - 2 * margin;
+  const hasPhoto = !!photoDataUrl;
+  const clipId = "einladung-inside-photo";
+
+  const datumSize = fitSize(datum, photoW * 0.95, 70, CHAR_W.italic);
+  const datumTL = Math.min(estimateW(datum, datumSize, CHAR_W.italic), photoW * 0.95);
+  const clampLines = (lines: string[], max: number): string[] => {
+    if (lines.length <= max) return lines;
+    const kept = lines.slice(0, max);
+    kept[max - 1] = kept[max - 1].replace(/\s*\S*$/, "") + "…";
+    return kept;
+  };
+  const grussLines = clampLines(wrapLines(gruss, 36), 3);
+  const rsvpLines = clampLines(wrapLines(rsvp, 50), 2);
+
+  const textTop = margin + photoH + 30;
+
+  return (
+    <>
+      {hasPhoto ? (
+        <>
+          <defs>
+            <clipPath id={clipId}>
+              <rect x={margin} y={margin} width={photoW} height={photoH} rx={6} />
+            </clipPath>
+          </defs>
+          <image href={photoDataUrl!} x={margin} y={margin}
+            width={photoW} height={photoH}
+            preserveAspectRatio="xMidYMid slice"
+            clipPath={`url(#${clipId})`} />
+          <rect x={margin} y={margin} width={photoW} height={photoH} rx={6}
+            fill="none" stroke={template.accent} strokeOpacity={0.35} strokeWidth={1} />
+        </>
+      ) : (
+        <g>
+          <rect x={margin} y={margin} width={photoW} height={photoH} rx={6}
+            fill="none" stroke={template.accent} strokeOpacity={0.4}
+            strokeDasharray="8 6" strokeWidth={1.2} />
+          <text x={w / 2} y={margin + photoH / 2 - 14} fontFamily={font} fontSize={22}
+            fontStyle="italic" fill={template.accent} textAnchor="middle" dominantBaseline="middle"
+            opacity={0.75}>
+            Euer Foto
+          </text>
+          <text x={w / 2} y={margin + photoH / 2 + 14} fontFamily={font} fontSize={14}
+            fill={template.accent} textAnchor="middle" dominantBaseline="middle" opacity={0.55}>
+            (optional — könnt ihr im nächsten Schritt hochladen)
+          </text>
+        </g>
+      )}
+
+      {/* "Wann & wo" header */}
+      <CapsRule text="Wann & wo" cx={w / 2} y={textTop} color={template.accent} font={font}
+        size={20} letterSpacing={6} lineLen={w * 0.12} />
+
+      {/* Date — hero */}
+      <text x={w / 2} y={textTop + 70} fontFamily={font} fontSize={datumSize}
+        fontStyle="italic" fill={template.primary} textAnchor="middle" dominantBaseline="middle"
+        textLength={datumTL} lengthAdjust="spacingAndGlyphs">{datum}</text>
+
+      {/* Time · Location */}
+      <text x={w / 2} y={textTop + 130} fontFamily={font} fontSize={22}
+        fill={template.primary} textAnchor="middle" letterSpacing={2}>
+        {zeit.toUpperCase()} · {location}
+      </text>
+      {ort && (
+        <text x={w / 2} y={textTop + 160} fontFamily={font} fontSize={16}
+          fontStyle="italic" fill={template.accent} textAnchor="middle" opacity={0.85}>
+          {ort}
+        </text>
+      )}
+
+      {/* Personal greeting */}
+      {grussLines.map((ln, i) => (
+        <text key={`g${i}`} x={w / 2} y={textTop + 220 + i * 26} fontFamily={font} fontSize={18}
+          fontStyle="italic" fill={template.primary} textAnchor="middle">
+          {ln}
+        </text>
+      ))}
+
+      {/* RSVP */}
+      {rsvpLines.map((ln, i) => (
+        <text key={`r${i}`} x={w / 2} y={h - 90 + i * 22} fontFamily={font} fontSize={14}
+          fill={template.accent} textAnchor="middle" opacity={0.8}>
+          {ln}
+        </text>
+      ))}
+    </>
   );
 }
 

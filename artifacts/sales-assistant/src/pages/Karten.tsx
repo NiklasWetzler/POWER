@@ -13,11 +13,14 @@ import { CardCanvas } from "@/components/karten/CardCanvas";
 import { TinderSwipe } from "@/components/karten/TinderSwipe";
 import { DataForm } from "@/components/karten/DataForm";
 import { LoginGate } from "@/components/karten/LoginGate";
-import { TEMPLATES, CARD_KINDS, KIND_LABEL, type CardKind, type TemplateSpec } from "@/components/karten/templates";
+import { TEMPLATES, type TemplateSpec } from "@/components/karten/templates";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
 import { useCookieConsent } from "@/hooks/useCookieConsent";
 
-type Step = "kind" | "mode" | "ai-style" | "ai-pick" | "swipe" | "pick" | "data" | "saved";
+type Step = "mode" | "ai-style" | "ai-pick" | "swipe" | "pick" | "data" | "saved";
+type CardKind = "einladung";
+const KIND: CardKind = "einladung";
+const KIND_LABEL_INVITATION = "Hochzeitseinladung";
 
 const SAMPLE_DATA: Record<string, string> = {
   partner1: "Anna",
@@ -27,6 +30,7 @@ const SAMPLE_DATA: Record<string, string> = {
   location: "Schloss Weingarten",
   ort: "Hauptstraße 1, 12345 Musterstadt",
   rsvp: "Bitte um Rückmeldung bis vier Wochen vor dem Fest.",
+  gruss: "Wir würden uns von Herzen freuen, diesen besonderen Tag mit euch zu feiern.",
   gastname: "Familie Müller",
   tisch: "Tisch 3",
   vorspeise: "Burrata · Tomaten · Basilikum",
@@ -41,17 +45,16 @@ const DRAFT_STORAGE_KEY = "niwe-karten-draft-v2";
 
 const AI_STYLES: Array<{ id: string; label: string; desc: string }> = [
   { id: "watercolor-floral", label: "Aquarell Blumen", desc: "Sanft, romantisch, pastell" },
-  { id: "gold-art-deco", label: "Gold Art Déco", desc: "Navy + Gold, Gatsby-Glanz" },
-  { id: "minimal-modern", label: "Modern Minimal", desc: "Editorial, viel Weißraum" },
-  { id: "boho-pampas", label: "Boho Pampasgras", desc: "Beige & Terracotta" },
-  { id: "vintage-ivory", label: "Vintage Ivory", desc: "Pergament & Sepia" },
+  { id: "blue-china", label: "Delft Blau", desc: "Yasmin & Dominic Stil" },
+  { id: "soft-greenery", label: "Sage Greenery", desc: "Eukalyptus, modern romantisch" },
   { id: "wildflower-meadow", label: "Wildblumenwiese", desc: "Locker, verspielt, hell" },
   { id: "gold-monogram", label: "Gold Monogramm", desc: "Klassisch, Lorbeer, Gold" },
+  { id: "boho-pampas", label: "Boho Pampasgras", desc: "Beige & Terracotta" },
+  { id: "minimal-modern", label: "Modern Minimal", desc: "Editorial, viel Weißraum" },
   { id: "moody-floral", label: "Moody Romance", desc: "Burgund, dunkel, intim" },
 ];
 
 interface SavedDraft {
-  kind: CardKind | null;
   templateId: string | null;
   data: Record<string, string>;
   step: Step;
@@ -76,12 +79,13 @@ export default function Karten() {
   const { consent } = useCookieConsent();
   const functional = consent?.functional === true;
 
-  const [step, setStep] = useState<Step>("kind");
+  const [step, setStep] = useState<Step>("mode");
   const [mode, setMode] = useState<"template" | "ai" | null>(null);
-  const [kind, setKind] = useState<CardKind | null>(null);
+  const kind: CardKind = KIND;
   const [likedTemplates, setLikedTemplates] = useState<TemplateSpec[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateSpec | null>(null);
   const [data, setData] = useState<Record<string, string>>({});
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [showLoginGate, setShowLoginGate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [savedId, setSavedId] = useState<number | null>(null);
@@ -94,7 +98,7 @@ export default function Karten() {
   const [aiSelected, setAiSelected] = useState<string | null>(null);
 
   // Restore draft (only if user gave functional consent). Never restore AI image
-  // (too big for localStorage) — user re-generates if they come back.
+  // or photo (too big for localStorage) — user re-uploads if they come back.
   useEffect(() => {
     if (!functional) {
       try { window.localStorage.removeItem(DRAFT_STORAGE_KEY); } catch { /* ignore */ }
@@ -102,8 +106,13 @@ export default function Karten() {
     }
     const d = loadDraft(functional);
     if (d) {
-      setStep(d.step === "ai-pick" ? "ai-style" : d.step);
-      setKind(d.kind);
+      // Migrate legacy draft step values from before the kind-step was removed.
+      const validSteps: Step[] = ["mode", "ai-style", "ai-pick", "swipe", "pick", "data", "saved"];
+      const restored: Step =
+        d.step === "ai-pick" ? "ai-style"
+        : validSteps.includes(d.step as Step) ? (d.step as Step)
+        : "mode";
+      setStep(restored);
       setMode(d.mode);
       setData(d.data ?? {});
       const t = TEMPLATES.find((x) => x.id === d.templateId);
@@ -113,9 +122,9 @@ export default function Karten() {
 
   useEffect(() => {
     saveDraft({
-      kind, templateId: selectedTemplate?.id ?? null, data, step, mode,
+      templateId: selectedTemplate?.id ?? null, data, step, mode,
     }, functional);
-  }, [kind, selectedTemplate, data, step, mode, functional]);
+  }, [selectedTemplate, data, step, mode, functional]);
 
   const handleField = (k: string, v: string) => setData((d) => ({ ...d, [k]: v }));
 
@@ -128,7 +137,6 @@ export default function Karten() {
   };
 
   const generateAiBackgrounds = async () => {
-    if (!kind) return;
     if (!loggedIn) {
       setShowLoginGate(true);
       return;
@@ -142,7 +150,6 @@ export default function Karten() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          kind,
           style: aiCustomPrompt.trim() ? undefined : aiStyle,
           prompt: aiCustomPrompt.trim() || undefined,
           count: 3,
@@ -164,10 +171,13 @@ export default function Karten() {
   };
 
   const submitDesign = async () => {
-    if (!selectedTemplate || !kind) return;
+    if (!selectedTemplate) return;
     setSubmitting(true);
     try {
-      const payload: Record<string, unknown> = { kind, templateId: selectedTemplate.id, data };
+      const payload: Record<string, unknown> = {
+        kind, templateId: selectedTemplate.id, data,
+        photoBase64: photoDataUrl,
+      };
       if (mode === "ai" && aiSelected) {
         payload.data = { ...data, __aiBg: aiSelected };
       }
@@ -212,9 +222,9 @@ export default function Karten() {
   };
 
   const resetAll = () => {
-    setStep("kind"); setKind(null); setMode(null);
+    setStep("mode"); setMode(null);
     setSelectedTemplate(null); setLikedTemplates([]);
-    setData({}); setSavedId(null);
+    setData({}); setPhotoDataUrl(null); setSavedId(null);
     setAiCandidates([]); setAiSelected(null); setAiCustomPrompt("");
   };
 
@@ -252,41 +262,17 @@ export default function Karten() {
           </div>
         </div>
 
-        {/* STEP: kind */}
-        {step === "kind" && (
+        {/* STEP: mode (AI vs templates) */}
+        {step === "mode" && (
           <section>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center">
-              Welche <span className="text-amber-600">Karte</span> möchtet ihr gestalten?
+              Gestaltet eure <span className="text-amber-600">Hochzeitseinladung</span>
             </h1>
-            <p className="text-center text-gray-500 mt-2 max-w-xl mx-auto">
-              Wählt zuerst die Kartenart — danach könnt ihr entweder eine fertige Vorlage nehmen
-              oder ein <span className="text-amber-600 font-medium">eigenes KI-Design</span> erstellen lassen.
+            <p className="text-center text-gray-500 mt-2 max-w-xl mx-auto mb-8">
+              Zweiseitige Klappkarte mit Titelbild und Innenseite für Datum, Ort und euer Foto. Komplett kostenlos.
             </p>
-
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {CARD_KINDS.map((k) => (
-                <button
-                  key={k.id}
-                  onClick={() => { setKind(k.id); setStep("mode"); }}
-                  className="text-left bg-white border border-gray-200 hover:border-amber-300 hover:shadow-md rounded-xl p-4 transition group"
-                >
-                  <div className="aspect-[3/4] bg-gray-50 rounded-md flex items-center justify-center mb-3 overflow-hidden">
-                    <CardCanvas kind={k.id} template={TEMPLATES[0]} data={SAMPLE_DATA} width={140} />
-                  </div>
-                  <p className="font-semibold text-gray-900 text-sm group-hover:text-amber-700">{k.label}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{k.desc}</p>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* STEP: mode (AI vs templates) */}
-        {step === "mode" && kind && (
-          <section>
-            <BackBtn onClick={() => setStep("kind")} label="Andere Kartenart wählen" />
-            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2">
-              Wie möchtet ihr eure {KIND_LABEL[kind]} gestalten?
+            <h2 className="text-xl sm:text-2xl font-bold text-center mb-2">
+              Wie möchtet ihr eure Einladung gestalten?
             </h2>
             <p className="text-center text-gray-500 mb-8 max-w-lg mx-auto text-sm">
               Beide Varianten sind kostenlos. Mit KI bekommt ihr ein einzigartiges, professionelles Design — perfekt, wenn ihr etwas Besonderes wollt.
@@ -332,14 +318,14 @@ export default function Karten() {
         )}
 
         {/* STEP: ai-style */}
-        {step === "ai-style" && kind && (
+        {step === "ai-style" && (
           <section>
             <BackBtn onClick={() => setStep("mode")} label="Andere Variante wählen" />
             <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2">
               Welche Stilrichtung gefällt euch?
             </h2>
             <p className="text-center text-gray-500 mb-6 max-w-lg mx-auto text-sm">
-              Unsere KI erschafft daraus in wenigen Sekunden 3 einzigartige Designs für eure {KIND_LABEL[kind]}.
+              Unsere KI erschafft daraus in wenigen Sekunden 3 einzigartige Designs für eure {KIND_LABEL_INVITATION}.
             </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
@@ -389,14 +375,14 @@ export default function Karten() {
                 )}
               </Button>
               <p className="text-xs text-gray-400 mt-3">
-                {loggedIn ? "Pro Stunde maximal 30 Generierungen pro Kundenkonto." : "Login erforderlich für KI-Generierung."}
+                {loggedIn ? "Pro Stunde maximal 12 Generierungen (à 3 Bilder) pro Kundenkonto." : "Login erforderlich für KI-Generierung."}
               </p>
             </div>
           </section>
         )}
 
         {/* STEP: ai-pick */}
-        {step === "ai-pick" && kind && aiCandidates.length > 0 && (
+        {step === "ai-pick" && aiCandidates.length > 0 && (
           <section>
             <BackBtn onClick={() => setStep("ai-style")} label="Anderen Stil wählen / nochmal generieren" />
             <h2 className="text-2xl font-bold text-center mb-2">Eure 3 KI-Designs</h2>
@@ -456,7 +442,7 @@ export default function Karten() {
         )}
 
         {/* STEP: swipe (template flow) */}
-        {step === "swipe" && kind && (
+        {step === "swipe" && (
           <section>
             <BackBtn onClick={() => setStep("mode")} label="Andere Variante wählen" />
             <h2 className="text-2xl font-bold text-center mb-2">Welcher Stil gefällt euch?</h2>
@@ -473,7 +459,7 @@ export default function Karten() {
         )}
 
         {/* STEP: pick (template flow) */}
-        {step === "pick" && kind && (
+        {step === "pick" && (
           <section>
             <BackBtn onClick={() => setStep("swipe")} label="Nochmal swipen" />
             <h2 className="text-2xl font-bold text-center mb-2">Wählt eure Lieblings-Vorlage</h2>
@@ -510,7 +496,7 @@ export default function Karten() {
         )}
 
         {/* STEP: data */}
-        {step === "data" && kind && selectedTemplate && loggedIn && (
+        {step === "data" && selectedTemplate && loggedIn && (
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <BackBtn
@@ -518,31 +504,52 @@ export default function Karten() {
                 label={mode === "ai" ? "Anderes KI-Design wählen" : "Andere Vorlage wählen"}
               />
               <h2 className="text-xl font-bold mb-1">Eure Daten</h2>
-              <p className="text-xs text-gray-500 mb-4">Die Vorschau aktualisiert sich live.</p>
+              <p className="text-xs text-gray-500 mb-4">Die Vorschau aktualisiert sich live — beide Seiten unten rechts.</p>
               <Card>
                 <CardContent className="p-4">
-                  <DataForm kind={kind} data={data} onChange={handleField} />
+                  <DataForm
+                    kind={kind}
+                    data={data}
+                    onChange={handleField}
+                    photoDataUrl={photoDataUrl}
+                    onPhotoChange={setPhotoDataUrl}
+                  />
                 </CardContent>
               </Card>
               <Button onClick={submitDesign} disabled={submitting}
                 className="w-full mt-4 bg-gray-900 hover:bg-gray-800">
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <FileText className="w-4 h-4 mr-1.5" />}
-                Karte speichern & PDF erstellen
+                Einladung speichern & PDF erstellen
               </Button>
             </div>
             <div className="lg:sticky lg:top-6 self-start">
-              <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Live-Vorschau</p>
-              <div className="bg-gray-50 rounded-xl p-6 flex items-center justify-center">
-                <CardCanvas
-                  kind={kind}
-                  template={selectedTemplate}
-                  data={{ ...SAMPLE_DATA, ...data }}
-                  aiBackgroundDataUrl={mode === "ai" ? aiSelected : null}
-                  width={300}
-                />
+              <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Live-Vorschau · Titel + Innenseite</p>
+              <div className="bg-gray-50 rounded-xl p-4 flex flex-wrap items-start justify-center gap-3">
+                <div className="text-center">
+                  <CardCanvas
+                    kind={kind}
+                    template={selectedTemplate}
+                    data={{ ...SAMPLE_DATA, ...data }}
+                    aiBackgroundDataUrl={mode === "ai" ? aiSelected : null}
+                    width={230}
+                    page="cover"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1.5">Seite 1 · Titel</p>
+                </div>
+                <div className="text-center">
+                  <CardCanvas
+                    kind={kind}
+                    template={selectedTemplate}
+                    data={{ ...SAMPLE_DATA, ...data }}
+                    photoDataUrl={photoDataUrl}
+                    width={230}
+                    page="inside"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1.5">Seite 2 · Innenseite</p>
+                </div>
               </div>
               <p className="text-[11px] text-gray-400 text-center mt-2">
-                {mode === "ai" ? "KI-Design" : `Vorlage: ${selectedTemplate.name}`}
+                {mode === "ai" ? "KI-Design (Pollinations · Flux)" : `Vorlage: ${selectedTemplate.name}`}
               </p>
             </div>
           </section>
