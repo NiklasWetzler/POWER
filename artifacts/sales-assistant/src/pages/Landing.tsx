@@ -192,27 +192,15 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
         </div>
       </section>
 
-      {/* Feature strip — three pillars */}
+      {/* Tagline strip */}
       <section className="bg-white border-y border-gray-100">
-        <div className="max-w-5xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-          <div>
-            <p className="font-serif text-3xl text-amber-600">100+</p>
-            <p className="text-xs uppercase tracking-wider text-gray-500 mt-1">
-              Hochzeiten begleitet
-            </p>
-          </div>
-          <div className="sm:border-x border-gray-100">
-            <p className="font-serif text-3xl text-amber-600">Alles</p>
-            <p className="text-xs uppercase tracking-wider text-gray-500 mt-1">
-              aus einer Hand
-            </p>
-          </div>
-          <div>
-            <p className="font-serif text-3xl text-amber-600">5,0 ★</p>
-            <p className="text-xs uppercase tracking-wider text-gray-500 mt-1">
-              Durchschnittliche Bewertung
-            </p>
-          </div>
+        <div className="max-w-3xl mx-auto px-6 py-10 text-center">
+          <p className="font-serif text-2xl sm:text-3xl text-amber-600 italic">
+            Alles aus einer Hand
+          </p>
+          <p className="text-xs uppercase tracking-[0.25em] text-gray-500 mt-2">
+            Persönlich · Professionell · Mit Liebe zum Detail
+          </p>
         </div>
       </section>
 
