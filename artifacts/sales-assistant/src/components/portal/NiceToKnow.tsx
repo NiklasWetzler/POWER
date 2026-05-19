@@ -19,11 +19,18 @@ interface Topic {
   accent: "amber" | "rose" | "blue" | "emerald";
 }
 
-const ACCENT: Record<Topic["accent"], { ring: string; bg: string; icon: string }> = {
-  amber:   { ring: "border-amber-200",   bg: "bg-amber-50/60",   icon: "bg-amber-500" },
-  rose:    { ring: "border-rose-200",    bg: "bg-rose-50/60",    icon: "bg-rose-500" },
-  blue:    { ring: "border-blue-200",    bg: "bg-blue-50/60",    icon: "bg-blue-500" },
-  emerald: { ring: "border-emerald-200", bg: "bg-emerald-50/60", icon: "bg-emerald-500" },
+const CREAM = {
+  ring: "border-[#e8dfce]",
+  bg: "bg-[#faf6ec]",
+  cardBg: "bg-[#fdfaf1]",
+  icon: "bg-[#c9a55a] text-white",
+};
+
+const ACCENT: Record<Topic["accent"], typeof CREAM> = {
+  amber: CREAM,
+  rose: CREAM,
+  blue: CREAM,
+  emerald: CREAM,
 };
 
 export const NICE_TO_KNOW_TOPICS: Topic[] = [
@@ -139,19 +146,19 @@ export function NiceToKnowTopicCard({
   const a = ACCENT[topic.accent];
 
   return (
-    <div className={cn("rounded-xl border bg-white overflow-hidden transition-all", a.ring)}>
+    <div className={cn("rounded-xl border overflow-hidden transition-all", a.ring, a.cardBg)}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
           "w-full text-left flex items-center gap-3 p-4 transition-colors",
-          open ? a.bg : "hover:bg-gray-50/80",
+          open ? a.bg : "hover:bg-[#f5eedb]/70",
         )}
         aria-expanded={open}
       >
         <div
           className={cn(
-            "w-10 h-10 rounded-xl text-white flex items-center justify-center shrink-0 shadow-sm",
+            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
             a.icon,
           )}
         >
