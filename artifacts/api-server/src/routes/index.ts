@@ -14,6 +14,10 @@ import adminBriefingRouter from "./adminBriefing";
 import customerMessagesRouter from "./customerMessages";
 import chatRouter from "./chat";
 import appointmentsRouter from "./appointments";
+import adminProfileRouter from "./adminProfile";
+import adminStaffRouter from "./adminStaff";
+import adminActivityRouter from "./adminActivityRoute";
+import adminInviteRouter from "./adminInvite";
 import { requireAdmin } from "../lib/authMiddleware";
 
 const router: IRouter = Router();
@@ -23,6 +27,7 @@ router.use(authRouter);
 router.use(customerAuthRouter);
 router.use(healthRouter);
 router.use(questionnairePublicRouter);
+router.use(adminInviteRouter); // /admin-invite/:token (public set-password)
 
 // ── Customer portal (customer session required) ────────────
 router.use(customerPortalRouter);
@@ -31,6 +36,13 @@ router.use(customerPortalRouter);
 router.use(customerMessagesRouter);
 router.use(chatRouter);
 router.use(appointmentsRouter);
+
+// ── Admin self-guarded routers (own requireAdmin/SuperAdmin per route) ──
+// Must be mounted BEFORE the global requireAdmin so the public avatar
+// endpoint inside adminProfileRouter (/admin-avatars/:id.jpg) stays public.
+router.use(adminProfileRouter);
+router.use(adminStaffRouter);
+router.use(adminActivityRouter);
 
 // ── Admin (admin session required) ────────────────────────
 router.use(requireAdmin);

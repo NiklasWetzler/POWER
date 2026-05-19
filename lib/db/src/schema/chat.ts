@@ -1,5 +1,6 @@
 import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
 import { customersTable } from "./customers";
+import { adminUsersTable } from "./adminUsers";
 
 export const chatMessagesTable = pgTable("chat_messages", {
   id: serial("id").primaryKey(),
@@ -8,6 +9,8 @@ export const chatMessagesTable = pgTable("chat_messages", {
     .references(() => customersTable.id, { onDelete: "cascade" }),
   sender: text("sender").notNull(),
   body: text("body").notNull(),
+  adminId: integer("admin_id").references(() => adminUsersTable.id, { onDelete: "set null" }),
+  adminName: text("admin_name"),
   readByAdminAt: timestamp("read_by_admin_at", { withTimezone: true }),
   readByCustomerAt: timestamp("read_by_customer_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })

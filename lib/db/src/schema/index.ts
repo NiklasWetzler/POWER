@@ -8,3 +8,4 @@ export * from "./activity";
 export * from "./questionnaire";
 export * from "./chat";
 export * from "./appointments";
+export * from "./adminUsers";

@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, and } from "drizzle-orm";
 import { db, customersTable, formAssignmentsTable } from "@workspace/db";
 import { requireAdmin } from "../lib/authMiddleware";
+import { logActivity } from "../lib/adminActivity";
 
 const router: IRouter = Router();
 
@@ -73,6 +74,11 @@ router.post("/admin/customers", async (req, res): Promise<void> => {
       return c;
     });
 
+    void logActivity(req.admin!, "customer.created", {
+      targetType: "customer",
+      targetId: customer!.id,
+      targetLabel: customer!.name,
+    });
     res.status(201).json({ ...customer!, createdAt: customer!.createdAt.toISOString() });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "";
@@ -121,6 +127,12 @@ router.patch("/admin/customers/:id", async (req, res): Promise<void> => {
       res.status(404).json({ error: "Kunde nicht gefunden." });
       return;
     }
+    void logActivity(req.admin!, "customer.updated", {
+      targetType: "customer",
+      targetId: updated.id,
+      targetLabel: updated.name,
+      description: Object.keys(updateFields).join(", "),
+    });
     res.json({ ...updated, createdAt: updated.createdAt.toISOString() });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "";
@@ -148,6 +160,8 @@ router.delete("/admin/customers/:id", async (req, res): Promise<void> => {
     appointmentsTable,
   } = await import("@workspace/db");
 
+  const [existing] = await db.select({ name: customersTable.name }).from(customersTable).where(eq(customersTable.id, id));
+
   await db.transaction(async (tx) => {
     await tx.delete(formAssignmentsTable).where(eq(formAssignmentsTable.customerId, id));
     await tx.delete(questionnaireSubmissionsTable).where(eq(questionnaireSubmissionsTable.customerId, id));
@@ -155,6 +169,11 @@ router.delete("/admin/customers/:id", async (req, res): Promise<void> => {
     await tx.delete(chatMessagesTable).where(eq(chatMessagesTable.customerId, id));
     await tx.delete(appointmentsTable).where(eq(appointmentsTable.customerId, id));
     await tx.delete(customersTable).where(eq(customersTable.id, id));
+  });
+  void logActivity(req.admin!, "customer.deleted", {
+    targetType: "customer",
+    targetId: id,
+    targetLabel: existing?.name,
   });
   res.json({ success: true });
 });

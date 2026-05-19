@@ -2,6 +2,7 @@ import express, { Router, type IRouter } from "express";
 import { eq, and, desc, isNull, sql } from "drizzle-orm";
 import { db, customerMessagesTable, customersTable } from "@workspace/db";
 import { requireCustomer, requireAdmin } from "../lib/authMiddleware";
+import { logActivity } from "../lib/adminActivity";
 
 const router: IRouter = Router();
 
@@ -151,6 +152,12 @@ router.post("/admin/customers/:id/messages", requireAdmin, adminMessageBodyParse
       id: customerMessagesTable.id,
       createdAt: customerMessagesTable.createdAt,
     });
+
+  void logActivity(req.admin!, "customer_message.sent", {
+    targetType: "customer",
+    targetId: customerId,
+    description: subject.trim().slice(0, 120),
+  });
 
   res.status(201).json({ id: msg!.id, createdAt: msg!.createdAt.toISOString() });
 });

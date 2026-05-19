@@ -8,6 +8,7 @@ import {
 } from "@workspace/db";
 import { requireCustomer, requireAdmin } from "../lib/authMiddleware";
 import { buildIcs } from "../lib/ical";
+import { logActivity } from "../lib/adminActivity";
 
 const router: IRouter = Router();
 
@@ -250,6 +251,11 @@ router.post("/admin/appointments/:id/accept", requireAdmin, async (req, res): Pr
     .where(eq(appointmentsTable.id, id));
 
   await createInboxConfirmation(appt.customerId, id, finalAt);
+  void logActivity(req.admin!, "appointment.accepted", {
+    targetType: "appointment",
+    targetId: id,
+    description: formatDe(finalAt),
+  });
   res.json({ success: true });
 });
 
@@ -287,6 +293,11 @@ router.post("/admin/appointments/:id/propose", requireAdmin, async (req, res): P
     })
     .where(eq(appointmentsTable.id, id));
 
+  void logActivity(req.admin!, "appointment.proposed", {
+    targetType: "appointment",
+    targetId: id,
+    description: formatDe(dt),
+  });
   res.json({ success: true });
 });
 
@@ -310,6 +321,10 @@ router.post("/admin/appointments/:id/decline", requireAdmin, async (req, res): P
       updatedAt: new Date(),
     })
     .where(eq(appointmentsTable.id, id));
+  void logActivity(req.admin!, "appointment.declined", {
+    targetType: "appointment",
+    targetId: id,
+  });
   res.json({ success: true });
 });
 

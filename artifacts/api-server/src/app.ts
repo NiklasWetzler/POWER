@@ -8,6 +8,7 @@ import pg from "pg";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { ensureSuperAdmin } from "./lib/adminBootstrap";
 
 const app: Express = express();
 const isProd = process.env.NODE_ENV === "production";
@@ -27,7 +28,14 @@ app.use(
     logger,
     serializers: {
       req(req) {
-        return { id: req.id, method: req.method, url: req.url?.split("?")[0] };
+        let url = req.url?.split("?")[0] ?? "";
+        // Redact secrets embedded in URL paths so they never leak into logs.
+        // Add new sensitive routes here as they appear.
+        url = url
+          .replace(/^\/api\/admin-invite\/[^/]+/, "/api/admin-invite/:token")
+          .replace(/^\/api\/admin-avatars\/[^/]+/, "/api/admin-avatars/:id")
+          .replace(/^\/api\/customer-magic-link\/[^/]+/, "/api/customer-magic-link/:token");
+        return { id: req.id, method: req.method, url };
       },
       res(res) {
         return { statusCode: res.statusCode };
@@ -84,8 +92,11 @@ app.use(
 );
 
 // ── Body parsers — modest limit; large PDF uploads use their own limit per route ──
-app.use(express.json({ limit: "256kb" }));
-app.use(express.urlencoded({ extended: true, limit: "256kb" }));
+// 1mb covers JSON payloads that embed a base64-encoded admin profile picture
+// (the UI caps uploads at ~600 KB binary → ~820 KB base64). Larger media uploads
+// still use their own per-route parsers.
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 // ── Session store: Postgres-backed so sessions survive restarts/scale ──────
 const PgSession = connectPgSimple(session);
@@ -165,5 +176,17 @@ app.use("/api/customer/chat", chatLimiter);
 app.use("/api/customer/appointments", chatLimiter);
 
 app.use("/api", router);
+
+// Bootstrap the super-admin from env. In production we refuse to keep serving
+// traffic if the bootstrap fails, otherwise the admin area could end up with no
+// reachable super-admin account. In development we log and continue so an
+// isolated DB hiccup doesn't lock you out of `pnpm dev`.
+void ensureSuperAdmin().catch((err) => {
+  logger.error({ err }, "ensureSuperAdmin failed at startup");
+  if (process.env.NODE_ENV === "production") {
+    // Give pino a tick to flush, then exit so the platform restarts us.
+    setTimeout(() => process.exit(1), 250);
+  }
+});
 
 export default app;

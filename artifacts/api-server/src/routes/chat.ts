@@ -1,7 +1,8 @@
 import { Router, type IRouter } from "express";
 import { eq, and, asc, desc, isNull, sql } from "drizzle-orm";
-import { db, chatMessagesTable, customersTable } from "@workspace/db";
+import { db, chatMessagesTable, customersTable, adminUsersTable } from "@workspace/db";
 import { requireCustomer, requireAdmin } from "../lib/authMiddleware";
+import { logActivity } from "../lib/adminActivity";
 
 const router: IRouter = Router();
 
@@ -13,8 +14,17 @@ router.get("/customer/chat", requireCustomer, async (req, res): Promise<void> =>
   const customerId = req.session.customerId!;
 
   const rows = await db
-    .select()
+    .select({
+      id: chatMessagesTable.id,
+      sender: chatMessagesTable.sender,
+      body: chatMessagesTable.body,
+      adminId: chatMessagesTable.adminId,
+      adminName: chatMessagesTable.adminName,
+      adminHasAvatar: adminUsersTable.profilePicBase64,
+      createdAt: chatMessagesTable.createdAt,
+    })
     .from(chatMessagesTable)
+    .leftJoin(adminUsersTable, eq(chatMessagesTable.adminId, adminUsersTable.id))
     .where(eq(chatMessagesTable.customerId, customerId))
     .orderBy(asc(chatMessagesTable.createdAt));
 
@@ -35,6 +45,9 @@ router.get("/customer/chat", requireCustomer, async (req, res): Promise<void> =>
       id: r.id,
       sender: r.sender,
       body: r.body,
+      adminId: r.adminId,
+      adminName: r.adminName,
+      adminHasAvatar: Boolean(r.adminHasAvatar),
       createdAt: r.createdAt.toISOString(),
     })),
   );
@@ -152,8 +165,17 @@ router.get("/admin/chat/:customerId", requireAdmin, async (req, res): Promise<vo
   }
 
   const rows = await db
-    .select()
+    .select({
+      id: chatMessagesTable.id,
+      sender: chatMessagesTable.sender,
+      body: chatMessagesTable.body,
+      adminId: chatMessagesTable.adminId,
+      adminName: chatMessagesTable.adminName,
+      adminHasAvatar: adminUsersTable.profilePicBase64,
+      createdAt: chatMessagesTable.createdAt,
+    })
     .from(chatMessagesTable)
+    .leftJoin(adminUsersTable, eq(chatMessagesTable.adminId, adminUsersTable.id))
     .where(eq(chatMessagesTable.customerId, customerId))
     .orderBy(asc(chatMessagesTable.createdAt));
 
@@ -175,6 +197,9 @@ router.get("/admin/chat/:customerId", requireAdmin, async (req, res): Promise<vo
       id: r.id,
       sender: r.sender,
       body: r.body,
+      adminId: r.adminId,
+      adminName: r.adminName,
+      adminHasAvatar: Boolean(r.adminHasAvatar),
       createdAt: r.createdAt.toISOString(),
     })),
   });
@@ -192,7 +217,7 @@ router.post("/admin/chat/:customerId", requireAdmin, async (req, res): Promise<v
     return;
   }
 
-  const [customer] = await db.select({ id: customersTable.id }).from(customersTable).where(eq(customersTable.id, customerId));
+  const [customer] = await db.select({ id: customersTable.id, name: customersTable.name }).from(customersTable).where(eq(customersTable.id, customerId));
   if (!customer) {
     res.status(404).json({ error: "Kunde nicht gefunden." });
     return;
@@ -204,9 +229,18 @@ router.post("/admin/chat/:customerId", requireAdmin, async (req, res): Promise<v
       customerId,
       sender: "admin",
       body: body.trim(),
+      adminId: req.admin!.id,
+      adminName: req.admin!.name,
       readByAdminAt: new Date(),
     })
     .returning({ id: chatMessagesTable.id, createdAt: chatMessagesTable.createdAt });
+
+  void logActivity(req.admin!, "chat.sent", {
+    targetType: "customer",
+    targetId: customerId,
+    targetLabel: customer.name ?? undefined,
+    description: body.trim().slice(0, 120),
+  });
 
   res.status(201).json({ id: msg!.id, createdAt: msg!.createdAt.toISOString() });
 });

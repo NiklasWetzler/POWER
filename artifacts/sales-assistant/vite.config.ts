@@ -4,29 +4,16 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-// PORT and BASE_PATH are only required for dev/preview server, not for `vite build`.
-const isServe = process.argv.includes("dev") || process.argv.includes("preview") || process.argv.includes("serve");
-
-let port = 5173;
-let basePath = "/";
-
-if (isServe) {
-  const rawPort = process.env.PORT;
-  if (!rawPort) {
-    throw new Error("PORT environment variable is required but was not provided.");
-  }
-  port = Number(rawPort);
-  if (Number.isNaN(port) || port <= 0) {
-    throw new Error(`Invalid PORT value: "${rawPort}"`);
-  }
-  const bp = process.env.BASE_PATH;
-  if (!bp) {
-    throw new Error("BASE_PATH environment variable is required but was not provided.");
-  }
-  basePath = bp;
-} else if (process.env.BASE_PATH) {
-  basePath = process.env.BASE_PATH;
+// PORT and BASE_PATH come from the workflow env (artifact.toml). The previous
+// check relied on argv.includes("dev") which is false when pnpm invokes the
+// vite binary directly without a subcommand, so PORT was being ignored and
+// vite fell back to 5173 — the Replit workflow then never saw its expected
+// port open. We now simply honour the env when set, with sensible defaults.
+const port = process.env.PORT ? Number(process.env.PORT) : 5173;
+if (Number.isNaN(port) || port <= 0) {
+  throw new Error(`Invalid PORT value: "${process.env.PORT}"`);
 }
+const basePath = process.env.BASE_PATH ?? "/";
 
 export default defineConfig({
   base: basePath,

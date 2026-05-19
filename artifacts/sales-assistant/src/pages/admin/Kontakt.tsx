@@ -22,6 +22,9 @@ interface ChatMsg {
   id: number;
   sender: "customer" | "admin";
   body: string;
+  adminId: number | null;
+  adminName: string | null;
+  adminHasAvatar: boolean;
   createdAt: string;
 }
 
@@ -172,15 +175,29 @@ function ChatConversation({ customerId, customerName, onBack }: { customerId: nu
             <p className="text-center text-sm text-muted-foreground mt-12">Noch keine Nachrichten.</p>
           ) : (
             messages.map((m) => {
-              const mine = m.sender === "admin";
+              const fromAdmin = m.sender === "admin";
+              const adminLabel = m.adminName ?? "NIWE Team";
+              const initials = adminLabel.split(/\s+/).map((p) => p.charAt(0)).join("").slice(0, 2).toUpperCase();
               return (
-                <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
+                <div key={m.id} className={cn("flex items-end gap-2", fromAdmin ? "justify-end" : "justify-start")}>
+                  {fromAdmin && (
+                    <div className="w-7 h-7 rounded-full overflow-hidden bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-semibold shrink-0 order-2">
+                      {m.adminId && m.adminHasAvatar ? (
+                        <img src={`/api/admin-avatars/${m.adminId}.jpg`} alt={adminLabel} className="w-full h-full object-cover" />
+                      ) : (
+                        <span>{initials}</span>
+                      )}
+                    </div>
+                  )}
                   <div className={cn(
                     "max-w-[80%] rounded-2xl px-4 py-2 shadow-sm",
-                    mine ? "bg-amber-500 text-white rounded-br-sm" : "bg-white border border-gray-200 text-gray-800 rounded-bl-sm",
+                    fromAdmin ? "bg-amber-500 text-white rounded-br-sm order-1" : "bg-white border border-gray-200 text-gray-800 rounded-bl-sm",
                   )}>
+                    {fromAdmin && (
+                      <p className="text-[11px] font-semibold text-amber-100 mb-0.5">{adminLabel}</p>
+                    )}
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{m.body}</p>
-                    <p className={cn("text-[10px] mt-1", mine ? "text-amber-100" : "text-gray-400")}>{fmtTime(m.createdAt)}</p>
+                    <p className={cn("text-[10px] mt-1", fromAdmin ? "text-amber-100" : "text-gray-400")}>{fmtTime(m.createdAt)}</p>
                   </div>
                 </div>
               );

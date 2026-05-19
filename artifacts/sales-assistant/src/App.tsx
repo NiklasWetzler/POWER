@@ -36,6 +36,10 @@ import FragebogenAdmin from "@/pages/FragebogenAdmin";
 import Kunden from "@/pages/admin/Kunden";
 import AdminKontakt from "@/pages/admin/Kontakt";
 import Dashboard from "@/pages/Dashboard";
+import Profil from "@/pages/admin/Profil";
+import Team from "@/pages/admin/Team";
+import Aktivitaeten from "@/pages/admin/Aktivitaeten";
+import AdminEinladung from "@/pages/AdminEinladung";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
@@ -141,6 +145,9 @@ function Router() {
       {/* Admin login */}
       <Route path="/admin">{() => <AdminLoginRoute />}</Route>
 
+      {/* Public: accept staff invitation and set password */}
+      <Route path="/admin-einladung/:token">{() => <AdminEinladung />}</Route>
+
       {/* Admin area */}
       <Route path="/admin/fragebogen">
         {() => <AdminRoute><FragebogenAdmin /></AdminRoute>}
@@ -153,6 +160,15 @@ function Router() {
       </Route>
       <Route path="/admin/dashboard">
         {() => <AdminRoute><Dashboard /></AdminRoute>}
+      </Route>
+      <Route path="/admin/profil">
+        {() => <AdminRoute><Profil /></AdminRoute>}
+      </Route>
+      <Route path="/admin/team">
+        {() => <AdminRoute><Team /></AdminRoute>}
+      </Route>
+      <Route path="/admin/aktivitaeten">
+        {() => <AdminRoute><Aktivitaeten /></AdminRoute>}
       </Route>
 
       <Route component={NotFound} />

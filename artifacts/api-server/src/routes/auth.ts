@@ -1,67 +1,69 @@
 import { Router, type IRouter } from "express";
-import { timingSafeEqual } from "node:crypto";
+import bcrypt from "bcryptjs";
+import { eq } from "drizzle-orm";
+import { db, adminUsersTable } from "@workspace/db";
+import { logActivity } from "../lib/adminActivity";
 
 const router: IRouter = Router();
-
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const isProd = process.env.NODE_ENV === "production";
-
-if (isProd && (!ADMIN_USERNAME || !ADMIN_PASSWORD || ADMIN_PASSWORD.length < 12)) {
-  // Fail-fast: do not allow the server to boot in prod with a weak/missing admin password
-  throw new Error("ADMIN_USERNAME and ADMIN_PASSWORD (>= 12 chars) must be set in production.");
-}
 
 declare module "express-session" {
   interface SessionData {
     isAdmin: boolean;
+    adminId: number;
     customerId: number;
   }
 }
 
-function safeEqual(a: string, b: string): boolean {
-  const ab = Buffer.from(a, "utf8");
-  const bb = Buffer.from(b, "utf8");
-  if (ab.length !== bb.length) {
-    // Still do a comparison with a dummy buffer to keep timing constant
-    timingSafeEqual(ab, ab);
-    return false;
-  }
-  return timingSafeEqual(ab, bb);
-}
-
-router.post("/auth/login", (req, res): void => {
+router.post("/auth/login", async (req, res): Promise<void> => {
   const { username, password } = req.body as { username?: string; password?: string };
 
-  if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
-    res.status(503).json({ error: "Admin-Login ist nicht konfiguriert." });
-    return;
-  }
   if (typeof username !== "string" || typeof password !== "string") {
     res.status(400).json({ error: "Benutzername und Passwort erforderlich." });
     return;
   }
 
-  if (safeEqual(username, ADMIN_USERNAME) && safeEqual(password, ADMIN_PASSWORD)) {
-    // Regenerate session ID on privilege change to prevent session fixation
-    req.session.regenerate((regenErr) => {
-      if (regenErr) {
-        res.status(500).json({ error: "Session konnte nicht erstellt werden." });
-        return;
-      }
-      req.session.isAdmin = true;
-      req.session.save((err) => {
-        if (err) {
-          res.status(500).json({ error: "Session konnte nicht gespeichert werden." });
-          return;
-        }
-        res.json({ success: true });
+  const [user] = await db
+    .select()
+    .from(adminUsersTable)
+    .where(eq(adminUsersTable.username, username.trim()))
+    .limit(1);
+
+  // Always do a bcrypt comparison to keep the timing constant whether or not
+  // the user exists. Compare against a known dummy hash if the user is missing.
+  const dummyHash = "$2b$12$abcdefghijklmnopqrstuvabcdefghijklmnopqrstuvwxyzabcdef";
+  const hash = user?.passwordHash ?? dummyHash;
+  const ok = await bcrypt.compare(password, hash);
+
+  if (!user || !user.passwordHash || !ok) {
+    if (user) {
+      void logActivity({ id: user.id, name: user.name }, "auth.failed_login", {
+        description: "Falsches Passwort.",
       });
-    });
+    }
+    res.status(401).json({ error: "Benutzername oder Passwort falsch." });
     return;
   }
 
-  res.status(401).json({ error: "Benutzername oder Passwort falsch." });
+  req.session.regenerate((regenErr) => {
+    if (regenErr) {
+      res.status(500).json({ error: "Session konnte nicht erstellt werden." });
+      return;
+    }
+    req.session.isAdmin = true;
+    req.session.adminId = user.id;
+    req.session.save(async (err) => {
+      if (err) {
+        res.status(500).json({ error: "Session konnte nicht gespeichert werden." });
+        return;
+      }
+      await db
+        .update(adminUsersTable)
+        .set({ lastLoginAt: new Date() })
+        .where(eq(adminUsersTable.id, user.id));
+      void logActivity({ id: user.id, name: user.name }, "auth.login");
+      res.json({ success: true });
+    });
+  });
 });
 
 router.post("/auth/logout", (req, res): void => {
@@ -71,12 +73,36 @@ router.post("/auth/logout", (req, res): void => {
   });
 });
 
-router.get("/auth/me", (req, res): void => {
-  if (req.session.isAdmin) {
-    res.json({ loggedIn: true });
-  } else {
+router.get("/auth/me", async (req, res): Promise<void> => {
+  if (!req.session.adminId) {
     res.json({ loggedIn: false });
+    return;
   }
+  const [user] = await db
+    .select({
+      id: adminUsersTable.id,
+      username: adminUsersTable.username,
+      name: adminUsersTable.name,
+      email: adminUsersTable.email,
+      isSuperAdmin: adminUsersTable.isSuperAdmin,
+      hasAvatar: adminUsersTable.profilePicBase64,
+    })
+    .from(adminUsersTable)
+    .where(eq(adminUsersTable.id, req.session.adminId))
+    .limit(1);
+  if (!user) {
+    res.json({ loggedIn: false });
+    return;
+  }
+  res.json({
+    loggedIn: true,
+    id: user.id,
+    username: user.username,
+    name: user.name,
+    email: user.email,
+    isSuperAdmin: user.isSuperAdmin,
+    hasAvatar: Boolean(user.hasAvatar),
+  });
 });
 
 export default router;
