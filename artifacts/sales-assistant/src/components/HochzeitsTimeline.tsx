@@ -263,9 +263,9 @@ export function HochzeitsTimeline() {
 
         <Card className="border-gray-200 shadow-sm">
           <CardContent className="p-5 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-end gap-3 max-w-md mx-auto">
-              <div className="flex-1 space-y-1">
-                <Label htmlFor="wedding-date" className="text-xs text-gray-600">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 max-w-xl mx-auto">
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="wedding-date" className="text-sm font-medium text-gray-700">
                   Euer Hochzeitsdatum
                 </Label>
                 <Input
@@ -274,14 +274,13 @@ export function HochzeitsTimeline() {
                   min={minDate}
                   value={weddingDateStr}
                   onChange={(e) => setWeddingDateStr(e.target.value)}
-                  className="bg-white"
+                  className="bg-white h-14 text-base sm:text-lg px-4 border-amber-200 focus-visible:ring-amber-400"
                 />
               </div>
               {weddingDateStr && weddingDate && (
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                  className="h-14 border-amber-300 text-amber-700 hover:bg-amber-50 px-5"
                   onClick={() => {
                     if (!computed) return;
                     downloadICS(

@@ -51,9 +51,11 @@ function Decoration({ template, w, h }: { template: TemplateSpec; w: number; h: 
     case "minimal-line": {
       const cx = w / 2;
       return (
-        <g stroke={template.accent} strokeWidth={1.4} fill="none">
-          <line x1={cx - 180} y1={h / 2 - 240} x2={cx + 180} y2={h / 2 - 240} />
-          <line x1={cx - 180} y1={h / 2 + 300} x2={cx + 180} y2={h / 2 + 300} />
+        <g stroke={template.accent} fill="none">
+          <line x1={cx - 200} y1={h / 2 - 240} x2={cx - 28} y2={h / 2 - 240} strokeWidth={1.2} />
+          <line x1={cx + 28} y1={h / 2 - 240} x2={cx + 200} y2={h / 2 - 240} strokeWidth={1.2} />
+          <circle cx={cx} cy={h / 2 - 240} r={5} fill={template.accent} />
+          <line x1={cx - 200} y1={h / 2 + 300} x2={cx + 200} y2={h / 2 + 300} strokeWidth={1.2} />
         </g>
       );
     }
@@ -62,15 +64,26 @@ function Decoration({ template, w, h }: { template: TemplateSpec; w: number; h: 
       return (
         <g stroke={template.accent} fill="none">
           <rect x={m} y={m} width={w - 2 * m} height={h - 2 * m} strokeWidth={1.6} />
-          <rect x={m + 16} y={m + 16} width={w - 2 * (m + 16)} height={h - 2 * (m + 16)} strokeWidth={0.8} />
+          <rect x={m + 16} y={m + 16} width={w - 2 * (m + 16)} height={h - 2 * (m + 16)} strokeWidth={0.7} />
+          {/* Corner flourishes */}
+          {[[m, m, 1, 1], [w - m, m, -1, 1], [m, h - m, 1, -1], [w - m, h - m, -1, -1]].map(
+            ([x, y, sx, sy], i) => (
+              <g key={i} transform={`translate(${x},${y}) scale(${sx},${sy})`}>
+                <line x1={0} y1={0} x2={26} y2={0} strokeWidth={1.4} />
+                <line x1={0} y1={0} x2={0} y2={26} strokeWidth={1.4} />
+              </g>
+            ),
+          )}
         </g>
       );
     }
     case "botanical":
       return (
-        <g stroke={template.accent} fill="none" strokeWidth={1.2} strokeLinecap="round">
+        <g stroke={template.accent} fill="none" strokeWidth={1.1} strokeLinecap="round">
           <Leaf cx={80} cy={h - 80} flip={false} />
           <Leaf cx={w - 80} cy={80} flip={true} />
+          <Leaf cx={w - 80} cy={h - 80} flip={true} />
+          <Leaf cx={80} cy={80} flip={false} />
         </g>
       );
     case "monogram": {
@@ -80,12 +93,28 @@ function Decoration({ template, w, h }: { template: TemplateSpec; w: number; h: 
       return (
         <g stroke={template.accent} fill="none">
           <circle cx={cx} cy={cy} r={r} strokeWidth={1.2} />
-          <circle cx={cx} cy={cy} r={r * 0.85} strokeWidth={0.7} />
+          <circle cx={cx} cy={cy} r={r * 0.86} strokeWidth={0.6} />
+          {/* Slim laurel arms */}
+          {[-1, 1].map((s) => (
+            <g key={s} stroke={template.accent} strokeWidth={0.7} strokeLinecap="round">
+              {[0, 1, 2, 3, 4].map((i) => {
+                const t = i / 5;
+                const ax = cx + s * (r + 18 + t * 70);
+                const ay = cy - 20 + t * 40;
+                return <line key={i} x1={ax} y1={ay} x2={ax + s * 14} y2={ay - 10} />;
+              })}
+            </g>
+          ))}
         </g>
       );
     }
     case "editorial":
-      return <rect x={0} y={0} width={30} height={h} fill={template.accent} />;
+      return (
+        <g>
+          <rect x={0} y={0} width={36} height={h} fill={template.accent} />
+          <rect x={w - 10} y={0} width={6} height={h} fill={template.accent} opacity={0.5} />
+        </g>
+      );
     case "wash":
       return (
         <g>
@@ -94,6 +123,104 @@ function Decoration({ template, w, h }: { template: TemplateSpec; w: number; h: 
           ))}
         </g>
       );
+    case "art-deco": {
+      const FanCorner = ({ x, y, sx, sy }: { x: number; y: number; sx: 1 | -1; sy: 1 | -1 }) => (
+        <g transform={`translate(${x},${y}) scale(${sx},${sy})`} stroke={template.accent} strokeWidth={1.2} fill="none" strokeLinecap="round">
+          {[0, 1, 2, 3, 4, 5].map((i) => {
+            const a = (i / 5) * (Math.PI / 2);
+            const len = 110 - i * 6;
+            return <line key={i} x1={0} y1={0} x2={Math.cos(a) * len} y2={Math.sin(a) * len} />;
+          })}
+          {/* Quarter-arc */}
+          <path d={`M ${120} 0 A 120 120 0 0 1 0 120`} strokeWidth={0.8} />
+        </g>
+      );
+      return (
+        <g>
+          <FanCorner x={50} y={50} sx={1} sy={1} />
+          <FanCorner x={w - 50} y={50} sx={-1} sy={1} />
+          <FanCorner x={50} y={h - 50} sx={1} sy={-1} />
+          <FanCorner x={w - 50} y={h - 50} sx={-1} sy={-1} />
+          {/* Center diamond divider — clamp inside the card */}
+          {(() => {
+            const desiredY = h / 2 + 280;
+            const maxY = h - 90;
+            const dy = Math.min(desiredY, maxY);
+            return (
+              <g stroke={template.accent} strokeWidth={1} fill="none">
+                <line x1={w / 2 - 140} y1={dy} x2={w / 2 - 18} y2={dy} />
+                <line x1={w / 2 + 18} y1={dy} x2={w / 2 + 140} y2={dy} />
+                <g transform={`translate(${w / 2},${dy}) rotate(45)`}>
+                  <rect x={-9} y={-9} width={18} height={18} fill="none" />
+                  <rect x={-4} y={-4} width={8} height={8} fill={template.accent} />
+                </g>
+              </g>
+            );
+          })()}
+        </g>
+      );
+    }
+    case "arch": {
+      const m = 70;
+      const archX = m;
+      const archY = m;
+      const archW = w - 2 * m;
+      const maxArchH = h - 2 * m;
+      const r = Math.min(archW / 2, maxArchH * 0.55);
+      const innerH = Math.max(maxArchH, r);
+      const d = `M ${archX} ${archY + innerH} L ${archX} ${archY + r} A ${r} ${r} 0 0 1 ${archX + archW} ${archY + r} L ${archX + archW} ${archY + innerH}`;
+      return (
+        <g stroke={template.accent} fill="none">
+          <path d={d} strokeWidth={1.4} />
+          <path
+            d={`M ${archX + 14} ${archY + innerH} L ${archX + 14} ${archY + r + 4} A ${r - 14} ${r - 14} 0 0 1 ${archX + archW - 14} ${archY + r + 4} L ${archX + archW - 14} ${archY + innerH}`}
+            strokeWidth={0.6}
+            opacity={0.7}
+          />
+        </g>
+      );
+    }
+    case "wreath": {
+      const cx = w / 2;
+      const cy = h * 0.16;
+      const r = Math.min(w * 0.18, h * 0.1);
+      const n = 16;
+      return (
+        <g stroke={template.accent} fill="none" strokeWidth={1} strokeLinecap="round">
+          {Array.from({ length: n }).map((_, i) => {
+            const a = Math.PI + (i / (n - 1)) * Math.PI;
+            const x = cx + Math.cos(a) * r;
+            const y = cy + Math.sin(a) * r;
+            const tx = Math.cos(a + Math.PI / 2);
+            const ty = Math.sin(a + Math.PI / 2);
+            const len = 18;
+            return (
+              <g key={i}>
+                <line x1={x} y1={y} x2={x + tx * len} y2={y + ty * len} />
+                <line x1={x + tx * 4} y1={y + ty * 4} x2={x + tx * 4 + tx * 8 + ty * 6} y2={y + ty * 4 + ty * 8 - tx * 6} strokeWidth={0.7} />
+              </g>
+            );
+          })}
+          {/* tiny bottom bow tie */}
+          <circle cx={cx} cy={cy + r + 6} r={3} fill={template.accent} stroke="none" />
+        </g>
+      );
+    }
+    case "terrazzo": {
+      const dots: Array<[number, number, number, number]> = [
+        [60, 90, 6, 0.6], [140, 200, 4, 0.45], [w - 80, 130, 5, 0.55], [w - 140, 320, 3, 0.4],
+        [80, h - 130, 7, 0.55], [w - 100, h - 80, 5, 0.6], [w / 2 - 120, h - 200, 4, 0.5],
+        [w / 2 + 90, 70, 3, 0.4], [220, h - 320, 4, 0.5], [w - 220, h / 2, 5, 0.45],
+        [40, h / 2 + 80, 3, 0.4], [w / 2 + 200, h - 90, 4, 0.55], [w / 2 - 220, h / 3, 3, 0.4],
+      ];
+      return (
+        <g fill={template.accent}>
+          {dots.map(([x, y, r, op], i) => (
+            <circle key={i} cx={x} cy={y} r={r} opacity={op} />
+          ))}
+        </g>
+      );
+    }
   }
 }
 
