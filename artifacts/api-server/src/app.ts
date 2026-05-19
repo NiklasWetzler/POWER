@@ -95,8 +95,6 @@ app.use(
 // 1mb covers JSON payloads that embed a base64-encoded admin profile picture
 // (the UI caps uploads at ~600 KB binary → ~820 KB base64). Larger media uploads
 // still use their own per-route parsers.
-// Card designs may carry a base64-encoded photo (Dankeskarte) up to ~6 MB binary.
-app.use("/api/designs", express.json({ limit: "16mb" }));
 app.use("/api/ai", express.json({ limit: "1mb" }));
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));

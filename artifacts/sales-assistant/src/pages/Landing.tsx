@@ -209,35 +209,6 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
         <HochzeitsTimeline />
       </div>
 
-      {/* Karten-Designer (öffentlich, Login erst beim Speichern) */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-12 sm:pt-8 sm:pb-16">
-        <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-white to-rose-50 border border-amber-100 rounded-3xl p-8 sm:p-14 text-center shadow-sm">
-          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-rose-200/30 blur-3xl pointer-events-none" />
-          <div className="relative">
-            <div className="inline-flex items-center gap-1.5 bg-white border border-amber-200 text-amber-700 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] mb-4">
-              <Sparkles className="w-3 h-3" />
-              Neu · KI-gestützt · kostenlos
-            </div>
-            <h2 className="font-serif text-3xl sm:text-4xl text-gray-900">
-              Gestaltet eure Hochzeitseinladung
-              <br />
-              <span className="italic text-amber-600">in wenigen Minuten.</span>
-            </h2>
-            <p className="text-sm sm:text-base text-gray-600 mt-4 max-w-xl mx-auto leading-relaxed">
-              Wählt eine Stilrichtung — unsere KI erschafft daraus drei einzigartige Designs.
-              Zweiseitige Klappkarte mit eurem Foto, Datum und persönlichem Gruß. PDF und E-Mail-Versand inklusive.
-            </p>
-            <Link href="/karten">
-              <button className="mt-7 inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-full text-sm font-semibold transition shadow-lg">
-                Jetzt Einladung gestalten
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
       <footer className="border-t border-gray-100 py-6 text-center text-xs text-gray-400 bg-gray-50/50">
         <div className="space-x-3">
           <span>NIWE Weddings · NIWE Events · info@niwe-events.com</span>
