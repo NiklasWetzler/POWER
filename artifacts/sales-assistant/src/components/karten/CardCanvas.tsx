@@ -51,11 +51,11 @@ export function CardCanvas({ kind, template, data, photoDataUrl, aiBackgroundDat
           <Decoration template={template} w={vbW} h={vbH} />
         </>
       )}
-      {kind === "einladung" && <Einladung template={template} data={data} w={vbW} h={vbH} font={font} />}
-      {kind === "tischkarte" && <Tischkarte template={template} data={data} w={vbW} h={vbH} font={font} />}
-      {kind === "menuekarte" && <Menuekarte template={template} data={data} w={vbW} h={vbH} font={font} />}
+      {kind === "einladung" && <Einladung template={template} data={data} w={vbW} h={vbH} font={font} aiBg={!!aiBackgroundDataUrl} />}
+      {kind === "tischkarte" && <Tischkarte template={template} data={data} w={vbW} h={vbH} font={font} aiBg={!!aiBackgroundDataUrl} />}
+      {kind === "menuekarte" && <Menuekarte template={template} data={data} w={vbW} h={vbH} font={font} aiBg={!!aiBackgroundDataUrl} />}
       {kind === "dankeskarte" && (
-        <Dankeskarte template={template} data={data} w={vbW} h={vbH} font={font} photoDataUrl={photoDataUrl} />
+        <Dankeskarte template={template} data={data} w={vbW} h={vbH} font={font} photoDataUrl={photoDataUrl} aiBg={!!aiBackgroundDataUrl} />
       )}
     </svg>
   );
@@ -255,15 +255,41 @@ function Leaf({ cx, cy, flip }: { cx: number; cy: number; flip: boolean }) {
   );
 }
 
+// ─── Typography helpers ──────────────────────────────────────────────────────
+
+// Approximate character widths (relative to fontSize) for typical fonts.
+// Used purely for auto-fit shrinking — exact width is never required.
+const CHAR_W = { bold: 0.56, italic: 0.48, regular: 0.5, caps: 0.62 };
+
+function fitSize(
+  text: string,
+  maxW: number,
+  base: number,
+  cw: number = CHAR_W.bold,
+  letterSpacing = 0,
+  minScale = 0.5,
+): number {
+  if (!text) return base;
+  const len = text.length;
+  const natural = len * base * cw + Math.max(0, len - 1) * letterSpacing;
+  if (natural <= maxW) return base;
+  const denom = len * cw;
+  if (denom <= 0) return base;
+  const fitted = (maxW - Math.max(0, len - 1) * letterSpacing) / denom;
+  return Math.max(base * minScale, fitted);
+}
+
 interface Block {
   text: string;
-  size: number;
+  size: number;             // base font size (in SVG units; viewBox = mm * 10)
   weight?: number;
   italic?: boolean;
   color?: string;
   upper?: boolean;
   letterSpacing?: number;
-  marginTop?: number;
+  marginTop?: number;       // mm
+  maxWidthPct?: number;     // 0..1 — fraction of card width text may occupy
+  charKind?: keyof typeof CHAR_W; // for auto-fit estimate
 }
 
 function CenteredStack({
@@ -274,13 +300,17 @@ function CenteredStack({
     <g>
       {blocks.filter((b) => b.text).map((b, i) => {
         y += (b.marginTop ?? 0) * 10;
+        const maxW = w * (b.maxWidthPct ?? 0.82);
+        const cw = CHAR_W[b.charKind ?? (b.weight && b.weight >= 600 ? "bold" : b.italic ? "italic" : b.upper ? "caps" : "regular")];
+        const renderText = b.upper ? b.text.toUpperCase() : b.text;
+        const size = fitSize(renderText, maxW, b.size, cw, b.letterSpacing ?? 0);
         const el = (
           <text
             key={i}
             x={w / 2}
             y={y}
             fontFamily={font}
-            fontSize={b.size * 10}
+            fontSize={size}
             fontWeight={b.weight ?? 400}
             fontStyle={b.italic ? "italic" : "normal"}
             fill={b.color ?? template.primary}
@@ -288,17 +318,55 @@ function CenteredStack({
             letterSpacing={b.letterSpacing ?? 0}
             dominantBaseline="hanging"
           >
-            {b.upper ? b.text.toUpperCase() : b.text}
+            {renderText}
           </text>
         );
-        y += b.size * 10 * 1.15;
+        y += size * 1.18;
         return el;
       })}
     </g>
   );
 }
 
-function Einladung({ template, data, w, h, font }: { template: TemplateSpec; data: Record<string, string>; w: number; h: number; font: string }) {
+/** Soft cream "glass" panel + thin border, drawn on top of the AI background
+ *  so the typography stays sharp and readable regardless of the artwork. */
+function GlassPanel({
+  x, y, w, h, accent,
+}: { x: number; y: number; w: number; h: number; accent: string }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} fill="#fffdf7" opacity={0.9} rx={4} />
+      <rect x={x + 12} y={y + 12} width={w - 24} height={h - 24}
+        fill="none" stroke={accent} strokeOpacity={0.55} strokeWidth={1.4} />
+      <rect x={x + 20} y={y + 20} width={w - 40} height={h - 40}
+        fill="none" stroke={accent} strokeOpacity={0.25} strokeWidth={0.7} />
+    </g>
+  );
+}
+
+/** Small spaced-caps header with hairlines on either side and a centred dot.
+ *  Renders inline at the supplied y coordinate (SVG units). */
+function CapsRule({
+  text, cx, y, color, font, size = 28, letterSpacing = 8, lineLen = 90,
+}: { text: string; cx: number; y: number; color: string; font: string; size?: number; letterSpacing?: number; lineLen?: number }) {
+  const approxTextW = text.length * size * CHAR_W.caps + Math.max(0, text.length - 1) * letterSpacing;
+  const gap = approxTextW / 2 + 24;
+  return (
+    <g stroke={color} fill={color}>
+      <line x1={cx - gap - lineLen} y1={y} x2={cx - gap} y2={y} strokeWidth={0.9} />
+      <line x1={cx + gap} y1={y} x2={cx + gap + lineLen} y2={y} strokeWidth={0.9} />
+      <circle cx={cx - gap - lineLen - 6} cy={y} r={2.2} stroke="none" />
+      <circle cx={cx + gap + lineLen + 6} cy={y} r={2.2} stroke="none" />
+      <text x={cx} y={y + 3} fontFamily={font} fontSize={size}
+        textAnchor="middle" dominantBaseline="middle"
+        letterSpacing={letterSpacing} fill={color}>
+        {text.toUpperCase()}
+      </text>
+    </g>
+  );
+}
+
+function Einladung({ template, data, w, h, font, aiBg }: { template: TemplateSpec; data: Record<string, string>; w: number; h: number; font: string; aiBg: boolean }) {
   const partner1 = data.partner1 || "Anna";
   const partner2 = data.partner2 || "Markus";
   const datum = data.datum || "Sommer 2026";
@@ -307,52 +375,98 @@ function Einladung({ template, data, w, h, font }: { template: TemplateSpec; dat
   const zeit = data.zeit || "15:00 Uhr";
   const rsvp = data.rsvp || "Bitte um Rückmeldung bis vier Wochen vor dem Fest.";
 
-  return (
-    <CenteredStack
-      template={template}
-      font={font}
-      w={w}
-      startY={180}
-      blocks={[
-        { text: "Wir heiraten", size: 9, upper: true, letterSpacing: 4, color: template.accent },
-        { text: partner1, size: 30, weight: 700, marginTop: 12 },
-        { text: "&", size: 20, italic: true, color: template.accent, marginTop: 2 },
-        { text: partner2, size: 30, weight: 700, marginTop: 2 },
-        { text: datum, size: 11, upper: true, letterSpacing: 3, marginTop: 16 },
-        { text: `${zeit} · ${location}`, size: 9, marginTop: 5 },
-        { text: ort, size: 8, color: template.accent, marginTop: 1 },
-        { text: rsvp, size: 7, italic: true, marginTop: 18 },
-      ]}
-    />
-  );
-}
+  const panelX = w * 0.08;
+  const panelY = h * 0.08;
+  const panelW = w - 2 * panelX;
+  const panelH = h - 2 * panelY;
+  const innerW = panelW - 80; // text safe-width inside panel
 
-function Tischkarte({ template, data, w, h, font }: { template: TemplateSpec; data: Record<string, string>; w: number; h: number; font: string }) {
-  const guest = data.gastname || "Gast Name";
-  const tisch = data.tisch || "";
-  const partner1 = data.partner1 || "";
-  const partner2 = data.partner2 || "";
-  const couple = partner1 && partner2 ? `${partner1} & ${partner2}` : "";
+  // Names: auto-fit so the longest name never exceeds 72% of card width
+  const nameMax = innerW * 0.86;
+  const nameBase = 200; // ~20mm
+  const sz1 = fitSize(partner1, nameMax, nameBase, CHAR_W.bold);
+  const sz2 = fitSize(partner2, nameMax, nameBase, CHAR_W.bold);
+  const nameSize = Math.min(sz1, sz2);
 
   return (
     <>
-      <rect x={30} y={30} width={w - 60} height={h - 60} stroke={template.accent} strokeWidth={0.8} fill="none" />
+      {aiBg && <GlassPanel x={panelX} y={panelY} w={panelW} h={panelH} accent={template.accent} />}
+
+      <CapsRule text="Wir heiraten" cx={w / 2} y={panelY + 90} color={template.accent} font={font}
+        size={28} letterSpacing={8} lineLen={panelW * 0.18} />
+
+      {/* Names block — vertically centred inside the panel */}
+      <g>
+        <text x={w / 2} y={h * 0.36} fontFamily={font} fontSize={nameSize}
+          fontWeight={400} fontStyle="italic" fill={template.primary}
+          textAnchor="middle" dominantBaseline="middle">{partner1}</text>
+        <text x={w / 2} y={h * 0.36 + nameSize * 0.85} fontFamily={font}
+          fontSize={nameSize * 0.6} fontStyle="italic" fill={template.accent}
+          textAnchor="middle" dominantBaseline="middle">&amp;</text>
+        <text x={w / 2} y={h * 0.36 + nameSize * 1.7} fontFamily={font} fontSize={nameSize}
+          fontWeight={400} fontStyle="italic" fill={template.primary}
+          textAnchor="middle" dominantBaseline="middle">{partner2}</text>
+      </g>
+
+      {/* Date + venue block, lower third */}
+      <CapsRule text={datum} cx={w / 2} y={h * 0.74} color={template.primary} font={font}
+        size={32} letterSpacing={6} lineLen={panelW * 0.14} />
+
       <CenteredStack
         template={template}
         font={font}
         w={w}
-        startY={h / 2 - 100}
+        startY={h * 0.74 + 30}
         blocks={[
-          { text: couple, size: 7, upper: true, letterSpacing: 2, color: template.accent },
-          { text: guest, size: 22, weight: 700, marginTop: 5 },
-          { text: tisch, size: 9, marginTop: 5, color: template.accent, letterSpacing: 1 },
+          { text: `${zeit} · ${location}`, size: 28, marginTop: 4, maxWidthPct: 0.7 },
+          { text: ort, size: 24, color: template.accent, italic: true, marginTop: 1, maxWidthPct: 0.7 },
+          { text: rsvp, size: 20, italic: true, marginTop: 10, maxWidthPct: 0.65, color: template.primary },
         ]}
       />
     </>
   );
 }
 
-function Menuekarte({ template, data, w, h, font }: { template: TemplateSpec; data: Record<string, string>; w: number; h: number; font: string }) {
+function Tischkarte({ template, data, w, h, font, aiBg }: { template: TemplateSpec; data: Record<string, string>; w: number; h: number; font: string; aiBg: boolean }) {
+  const guest = data.gastname || "Gast Name";
+  const tisch = data.tisch || "";
+  const partner1 = data.partner1 || "";
+  const partner2 = data.partner2 || "";
+  const couple = partner1 && partner2 ? `${partner1} & ${partner2}` : "";
+
+  const panelX = 40, panelY = 40;
+  const panelW = w - 80, panelH = h - 80;
+  const innerW = panelW - 60;
+
+  const guestSize = fitSize(guest, innerW * 0.9, 180, CHAR_W.bold);
+
+  return (
+    <>
+      {aiBg && <GlassPanel x={panelX} y={panelY} w={panelW} h={panelH} accent={template.accent} />}
+      {!aiBg && (
+        <rect x={30} y={30} width={w - 60} height={h - 60} stroke={template.accent} strokeWidth={0.8} fill="none" />
+      )}
+      {couple && (
+        <text x={w / 2} y={h / 2 - guestSize * 0.85} fontFamily={font} fontSize={20}
+          letterSpacing={3} fill={template.accent} textAnchor="middle" dominantBaseline="middle">
+          {couple.toUpperCase()}
+        </text>
+      )}
+      <text x={w / 2} y={h / 2} fontFamily={font} fontSize={guestSize}
+        fontStyle="italic" fill={template.primary} textAnchor="middle" dominantBaseline="middle">
+        {guest}
+      </text>
+      {tisch && (
+        <text x={w / 2} y={h / 2 + guestSize * 0.75} fontFamily={font} fontSize={22}
+          letterSpacing={2} fill={template.accent} textAnchor="middle" dominantBaseline="middle">
+          {tisch.toUpperCase()}
+        </text>
+      )}
+    </>
+  );
+}
+
+function Menuekarte({ template, data, w, h, font, aiBg }: { template: TemplateSpec; data: Record<string, string>; w: number; h: number; font: string; aiBg: boolean }) {
   const partner1 = data.partner1 || "Anna";
   const partner2 = data.partner2 || "Markus";
   const datum = data.datum || "";
@@ -364,35 +478,47 @@ function Menuekarte({ template, data, w, h, font }: { template: TemplateSpec; da
     { l: "Getränke", v: data.getraenke || "" },
   ].filter((c) => c.v);
 
-  let y = h * 0.36;
+  const panelX = w * 0.06, panelY = h * 0.05;
+  const panelW = w - 2 * panelX, panelH = h - 2 * panelY;
+  const innerW = panelW - 80;
+
+  const couple = `${partner1} & ${partner2}`;
+  const coupleSize = fitSize(couple, innerW * 0.86, 170, CHAR_W.italic);
+
+  let y = h * 0.42;
   return (
     <>
-      <CenteredStack
-        template={template}
-        font={font}
-        w={w}
-        startY={160}
-        blocks={[
-          { text: "Menü", size: 9, upper: true, letterSpacing: 5, color: template.accent },
-          { text: `${partner1} & ${partner2}`, size: 22, weight: 700, marginTop: 10 },
-          { text: datum, size: 8, upper: true, letterSpacing: 3, color: template.accent, marginTop: 4 },
-        ]}
-      />
+      {aiBg && <GlassPanel x={panelX} y={panelY} w={panelW} h={panelH} accent={template.accent} />}
+
+      <CapsRule text="Menü" cx={w / 2} y={panelY + 90} color={template.accent} font={font}
+        size={28} letterSpacing={10} lineLen={panelW * 0.2} />
+
+      <text x={w / 2} y={panelY + 200} fontFamily={font} fontSize={coupleSize}
+        fontStyle="italic" fill={template.primary}
+        textAnchor="middle" dominantBaseline="middle">{couple}</text>
+
+      {datum && (
+        <text x={w / 2} y={panelY + 290} fontFamily={font} fontSize={22}
+          letterSpacing={4} fill={template.accent} textAnchor="middle">{datum.toUpperCase()}</text>
+      )}
+
       {courses.length === 0 && (
-        <text x={w / 2} y={y + 40} fontFamily={font} fontSize={90} fontStyle="italic" fill={template.accent} textAnchor="middle">
+        <text x={w / 2} y={y + 40} fontFamily={font} fontSize={32}
+          fontStyle="italic" fill={template.accent} textAnchor="middle">
           Trage euer Menü ein …
         </text>
       )}
       {courses.map((c, i) => {
         const start = y;
-        y += 200;
+        y += 160;
+        const vSize = fitSize(c.v, innerW * 0.85, 38, CHAR_W.italic);
         return (
           <g key={i}>
-            <text x={w / 2} y={start} fontFamily={font} fontSize={75} fontWeight={700} fill={template.accent}
-              textAnchor="middle" letterSpacing={3}>
+            <text x={w / 2} y={start} fontFamily={font} fontSize={20} fill={template.accent}
+              textAnchor="middle" letterSpacing={4}>
               {c.l.toUpperCase()}
             </text>
-            <text x={w / 2} y={start + 90} fontFamily={font} fontSize={95} fontStyle="italic" fill={template.primary}
+            <text x={w / 2} y={start + 60} fontFamily={font} fontSize={vSize} fontStyle="italic" fill={template.primary}
               textAnchor="middle">
               {c.v}
             </text>
@@ -404,8 +530,8 @@ function Menuekarte({ template, data, w, h, font }: { template: TemplateSpec; da
 }
 
 function Dankeskarte({
-  template, data, w, h, font, photoDataUrl,
-}: { template: TemplateSpec; data: Record<string, string>; w: number; h: number; font: string; photoDataUrl?: string | null }) {
+  template, data, w, h, font, photoDataUrl, aiBg,
+}: { template: TemplateSpec; data: Record<string, string>; w: number; h: number; font: string; photoDataUrl?: string | null; aiBg: boolean }) {
   const partner1 = data.partner1 || "Anna";
   const partner2 = data.partner2 || "Markus";
   const datum = data.datum || "";
@@ -420,20 +546,26 @@ function Dankeskarte({
   const tw = w - tx - 60;
   const clipId = "danke-clip";
 
-  // Wrap dankes text into lines for SVG (~28 chars per line)
+  // Wrap dankes text into lines for SVG (~30 chars per line)
   const words = text.split(/\s+/);
   const lines: string[] = [];
   let cur = "";
-  for (const w of words) {
-    if ((cur + " " + w).trim().length > 28) {
+  for (const word of words) {
+    if ((cur + " " + word).trim().length > 30) {
       if (cur) lines.push(cur);
-      cur = w;
-    } else cur = (cur ? cur + " " : "") + w;
+      cur = word;
+    } else cur = (cur ? cur + " " : "") + word;
   }
   if (cur) lines.push(cur);
 
+  const couple = `${partner1} & ${partner2}`;
+  const coupleSize = fitSize(couple, tw, 78, CHAR_W.italic);
+
   return (
     <>
+      {aiBg && (
+        <GlassPanel x={tx - 30} y={50} w={tw + 60} h={h - 100} accent={template.accent} />
+      )}
       <defs>
         <clipPath id={clipId}>
           <rect x={photoX} y={photoY} width={photoW} height={photoH} />
@@ -451,27 +583,29 @@ function Dankeskarte({
         />
       ) : (
         <g>
-          <rect x={photoX} y={photoY} width={photoW} height={photoH} fill="none"
+          <rect x={photoX} y={photoY} width={photoW} height={photoH} fill={aiBg ? "rgba(255,253,247,0.92)" : "none"}
             stroke={template.accent} strokeWidth={0.8} strokeDasharray="6 4" />
-          <text x={photoX + photoW / 2} y={photoY + photoH / 2} fontFamily={font} fontSize={80}
+          <text x={photoX + photoW / 2} y={photoY + photoH / 2} fontFamily={font} fontSize={24}
             fontStyle="italic" fill={template.accent} textAnchor="middle" dominantBaseline="middle">
             Foto später ergänzen
           </text>
         </g>
       )}
-      <text x={tx} y={130} fontFamily={font} fontSize={75} fontWeight={700} fill={template.accent} letterSpacing={5}>
+      <text x={tx} y={120} fontFamily={font} fontSize={22} fill={template.accent} letterSpacing={8}>
         DANKE
       </text>
-      <text x={tx} y={230} fontFamily={font} fontSize={155} fontWeight={700} fill={template.primary}>
-        {`${partner1} & ${partner2}`}
+      <text x={tx} y={120 + coupleSize * 0.95} fontFamily={font} fontSize={coupleSize}
+        fontStyle="italic" fill={template.primary}>
+        {couple}
       </text>
       {datum && (
-        <text x={tx} y={290} fontFamily={font} fontSize={75} fontStyle="italic" fill={template.accent}>
-          {datum}
+        <text x={tx} y={120 + coupleSize * 1.6} fontFamily={font} fontSize={20}
+          letterSpacing={3} fill={template.accent}>
+          {datum.toUpperCase()}
         </text>
       )}
       {lines.map((ln, i) => (
-        <text key={i} x={tx} y={360 + i * 100} fontFamily={font} fontSize={80} fill={template.primary}>
+        <text key={i} x={tx} y={120 + coupleSize * 2.4 + i * 38} fontFamily={font} fontSize={26} fill={template.primary}>
           {ln}
         </text>
       ))}
