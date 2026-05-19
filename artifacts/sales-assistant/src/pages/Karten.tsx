@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import {
-  ArrowLeft, ArrowRight, Heart, FileText, Mail, ChevronLeft,
+  ArrowRight, FileText, Mail, ChevronLeft,
   ShieldCheck, Sparkles, MailCheck, Folder, Loader2, Wand2, Check,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -10,14 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { CardCanvas } from "@/components/karten/CardCanvas";
-import { TinderSwipe } from "@/components/karten/TinderSwipe";
 import { DataForm } from "@/components/karten/DataForm";
 import { LoginGate } from "@/components/karten/LoginGate";
 import { TEMPLATES, type TemplateSpec } from "@/components/karten/templates";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
 import { useCookieConsent } from "@/hooks/useCookieConsent";
 
-type Step = "mode" | "ai-style" | "ai-pick" | "swipe" | "pick" | "data" | "saved";
+type Step = "ai-style" | "ai-pick" | "data" | "saved";
 type CardKind = "einladung";
 const KIND: CardKind = "einladung";
 const KIND_LABEL_INVITATION = "Hochzeitseinladung";
@@ -58,7 +57,6 @@ interface SavedDraft {
   templateId: string | null;
   data: Record<string, string>;
   step: Step;
-  mode: "template" | "ai" | null;
 }
 
 function loadDraft(functional: boolean): SavedDraft | null {
@@ -79,10 +77,8 @@ export default function Karten() {
   const { consent } = useCookieConsent();
   const functional = consent?.functional === true;
 
-  const [step, setStep] = useState<Step>("mode");
-  const [mode, setMode] = useState<"template" | "ai" | null>(null);
+  const [step, setStep] = useState<Step>("ai-style");
   const kind: CardKind = KIND;
-  const [likedTemplates, setLikedTemplates] = useState<TemplateSpec[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateSpec | null>(null);
   const [data, setData] = useState<Record<string, string>>({});
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
@@ -106,14 +102,13 @@ export default function Karten() {
     }
     const d = loadDraft(functional);
     if (d) {
-      // Migrate legacy draft step values from before the kind-step was removed.
-      const validSteps: Step[] = ["mode", "ai-style", "ai-pick", "swipe", "pick", "data", "saved"];
+      // Only AI flow exists now — any legacy/unknown step restarts at ai-style.
+      const validSteps: Step[] = ["ai-style", "ai-pick", "data", "saved"];
       const restored: Step =
         d.step === "ai-pick" ? "ai-style"
         : validSteps.includes(d.step as Step) ? (d.step as Step)
-        : "mode";
+        : "ai-style";
       setStep(restored);
-      setMode(d.mode);
       setData(d.data ?? {});
       const t = TEMPLATES.find((x) => x.id === d.templateId);
       if (t) setSelectedTemplate(t);
@@ -122,9 +117,9 @@ export default function Karten() {
 
   useEffect(() => {
     saveDraft({
-      templateId: selectedTemplate?.id ?? null, data, step, mode,
+      templateId: selectedTemplate?.id ?? null, data, step,
     }, functional);
-  }, [selectedTemplate, data, step, mode, functional]);
+  }, [selectedTemplate, data, step, functional]);
 
   const handleField = (k: string, v: string) => setData((d) => ({ ...d, [k]: v }));
 
@@ -178,7 +173,7 @@ export default function Karten() {
         kind, templateId: selectedTemplate.id, data,
         photoBase64: photoDataUrl,
       };
-      if (mode === "ai" && aiSelected) {
+      if (aiSelected) {
         payload.data = { ...data, __aiBg: aiSelected };
       }
       const res = await fetch("/api/designs", {
@@ -222,8 +217,8 @@ export default function Karten() {
   };
 
   const resetAll = () => {
-    setStep("mode"); setMode(null);
-    setSelectedTemplate(null); setLikedTemplates([]);
+    setStep("ai-style");
+    setSelectedTemplate(null);
     setData({}); setPhotoDataUrl(null); setSavedId(null);
     setAiCandidates([]); setAiSelected(null); setAiCustomPrompt("");
   };
@@ -262,66 +257,16 @@ export default function Karten() {
           </div>
         </div>
 
-        {/* STEP: mode (AI vs templates) */}
-        {step === "mode" && (
+        {/* STEP: ai-style */}
+        {step === "ai-style" && (
           <section>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center">
               Gestaltet eure <span className="text-amber-600">Hochzeitseinladung</span>
             </h1>
             <p className="text-center text-gray-500 mt-2 max-w-xl mx-auto mb-8">
-              Zweiseitige Klappkarte mit Titelbild und Innenseite für Datum, Ort und euer Foto. Komplett kostenlos.
+              Zweiseitige Klappkarte mit KI-Titelbild und Innenseite für Datum, Ort und euer Foto. Komplett kostenlos.
             </p>
-            <h2 className="text-xl sm:text-2xl font-bold text-center mb-2">
-              Wie möchtet ihr eure Einladung gestalten?
-            </h2>
-            <p className="text-center text-gray-500 mb-8 max-w-lg mx-auto text-sm">
-              Beide Varianten sind kostenlos. Mit KI bekommt ihr ein einzigartiges, professionelles Design — perfekt, wenn ihr etwas Besonderes wollt.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <button
-                onClick={() => { setMode("ai"); setStep("ai-style"); }}
-                className="group relative overflow-hidden text-left bg-gradient-to-br from-amber-50 via-rose-50 to-amber-100 border-2 border-amber-300 hover:border-amber-500 hover:shadow-xl rounded-2xl p-6 transition"
-              >
-                <div className="absolute -top-4 -right-4 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow">
-                  Neu
-                </div>
-                <div className="w-12 h-12 rounded-full bg-amber-500 text-white flex items-center justify-center mb-4 group-hover:scale-110 transition">
-                  <Wand2 className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-1.5">KI gestaltet euer Design</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  Wählt eine Stilrichtung — unsere KI erschafft daraus 3 einzigartige Karten in
-                  Designer-Qualität. Aquarell-Blumen, Goldornamente oder modern minimalistisch.
-                </p>
-                <p className="text-xs text-amber-700 font-medium mt-3 group-hover:underline">
-                  Eigenes Design erstellen →
-                </p>
-              </button>
-              <button
-                onClick={() => { setMode("template"); setStep("swipe"); }}
-                className="text-left bg-white border-2 border-gray-200 hover:border-amber-300 hover:shadow-md rounded-2xl p-6 transition"
-              >
-                <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center mb-4">
-                  <Heart className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-1.5">Aus Vorlagen wählen</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  Wischt euch durch unsere 10 handgemachten Vorlagen wie bei einer Dating-App
-                  und sammelt eure Favoriten.
-                </p>
-                <p className="text-xs text-gray-500 font-medium mt-3">
-                  Klassische Vorlagen ansehen →
-                </p>
-              </button>
-            </div>
-          </section>
-        )}
-
-        {/* STEP: ai-style */}
-        {step === "ai-style" && (
-          <section>
-            <BackBtn onClick={() => setStep("mode")} label="Andere Variante wählen" />
-            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2">
+            <h2 className="text-2xl font-bold text-center mb-2">
               Welche Stilrichtung gefällt euch?
             </h2>
             <p className="text-center text-gray-500 mb-6 max-w-lg mx-auto text-sm">
@@ -441,67 +386,13 @@ export default function Karten() {
           </section>
         )}
 
-        {/* STEP: swipe (template flow) */}
-        {step === "swipe" && (
-          <section>
-            <BackBtn onClick={() => setStep("mode")} label="Andere Variante wählen" />
-            <h2 className="text-2xl font-bold text-center mb-2">Welcher Stil gefällt euch?</h2>
-            <TinderSwipe
-              kind={kind}
-              templates={TEMPLATES}
-              sampleData={SAMPLE_DATA}
-              onComplete={(liked) => {
-                setLikedTemplates(liked);
-                setStep("pick");
-              }}
-            />
-          </section>
-        )}
-
-        {/* STEP: pick (template flow) */}
-        {step === "pick" && (
-          <section>
-            <BackBtn onClick={() => setStep("swipe")} label="Nochmal swipen" />
-            <h2 className="text-2xl font-bold text-center mb-2">Wählt eure Lieblings-Vorlage</h2>
-            <p className="text-center text-gray-500 text-sm mb-6">Tippt auf eine Karte, um sie auszuwählen.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {likedTemplates.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setSelectedTemplate(t)}
-                  className={`bg-white rounded-xl p-3 border-2 transition ${
-                    selectedTemplate?.id === t.id
-                      ? "border-amber-500 shadow-lg"
-                      : "border-gray-200 hover:border-amber-300"
-                  }`}
-                >
-                  <CardCanvas kind={kind} template={t} data={SAMPLE_DATA} width={240} />
-                  <p className="font-semibold text-sm text-gray-900 mt-3">{t.name}</p>
-                  <p className="text-xs text-gray-500">{t.tagline}</p>
-                </button>
-              ))}
-            </div>
-            <div className="text-center mt-8">
-              <Button
-                onClick={proceedToData}
-                disabled={!selectedTemplate}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
-              >
-                <Sparkles className="w-4 h-4 mr-1.5" />
-                Mit dieser Vorlage weiter
-                <ArrowRight className="w-4 h-4 ml-1.5" />
-              </Button>
-            </div>
-          </section>
-        )}
-
         {/* STEP: data */}
         {step === "data" && selectedTemplate && loggedIn && (
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <BackBtn
-                onClick={() => setStep(mode === "ai" ? "ai-pick" : "pick")}
-                label={mode === "ai" ? "Anderes KI-Design wählen" : "Andere Vorlage wählen"}
+                onClick={() => setStep("ai-pick")}
+                label="Anderes KI-Design wählen"
               />
               <h2 className="text-xl font-bold mb-1">Eure Daten</h2>
               <p className="text-xs text-gray-500 mb-4">Die Vorschau aktualisiert sich live — beide Seiten unten rechts.</p>
@@ -530,7 +421,7 @@ export default function Karten() {
                     kind={kind}
                     template={selectedTemplate}
                     data={{ ...SAMPLE_DATA, ...data }}
-                    aiBackgroundDataUrl={mode === "ai" ? aiSelected : null}
+                    aiBackgroundDataUrl={aiSelected}
                     width={230}
                     page="cover"
                   />
@@ -549,7 +440,7 @@ export default function Karten() {
                 </div>
               </div>
               <p className="text-[11px] text-gray-400 text-center mt-2">
-                {mode === "ai" ? "KI-Design (Pollinations · Flux)" : `Vorlage: ${selectedTemplate.name}`}
+                KI-Design (Pollinations · Flux)
               </p>
             </div>
           </section>
@@ -585,7 +476,7 @@ export default function Karten() {
               </Link>
             </div>
             <Button variant="ghost" className="mt-6 text-amber-600" onClick={resetAll}>
-              <Heart className="w-4 h-4 mr-1.5" /> Noch eine Karte gestalten
+              <Sparkles className="w-4 h-4 mr-1.5" /> Noch eine Karte gestalten
             </Button>
           </section>
         )}
@@ -596,8 +487,8 @@ export default function Karten() {
           onLogin={async () => {
             setShowLoginGate(false);
             await refresh();
-            // If they were trying to generate AI, kick that off now
-            if (mode === "ai" && step === "ai-style") {
+            // If they were on the style picker, kick off generation now.
+            if (step === "ai-style") {
               setTimeout(() => { void generateAiBackgrounds(); }, 50);
             } else {
               setStep("data");
@@ -618,5 +509,3 @@ function BackBtn({ onClick, label }: { onClick: () => void; label: string }) {
     </button>
   );
 }
-// keep unused linter happy
-ArrowLeft;

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Home, FileText, Inbox, Mail, LogOut, MessageCircle, Eye, ArrowLeft, Heart } from "lucide-react";
+import { Home, FileText, Inbox, Mail, LogOut, MessageCircle, Eye, ArrowLeft } from "lucide-react";
 import { openCookieSettings } from "@/hooks/useCookieConsent";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,6 @@ const navItems: { href: string; label: string; icon: React.ComponentType<{ class
   { href: "/portal/kontakt", label: "Kontakt", icon: MessageCircle, key: "kontakt" },
   { href: "/portal/formulare", label: "Formulare", icon: FileText },
   { href: "/portal/eingereicht", label: "Übermittelte", icon: Inbox },
-  { href: "/portal/meine-karten", label: "Meine Karten", icon: Heart },
 ];
 
 export function CustomerShell({ children, onLogout }: { children: React.ReactNode; onLogout: () => void }) {
@@ -93,7 +92,7 @@ export function CustomerShell({ children, onLogout }: { children: React.ReactNod
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-4 h-16">
           <Link href="/portal">
             <div className="cursor-pointer">
-              <Logo size="xs" />
+              <Logo size="sm" />
             </div>
           </Link>
 
