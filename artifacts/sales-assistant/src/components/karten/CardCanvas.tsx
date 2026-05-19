@@ -259,7 +259,7 @@ function Leaf({ cx, cy, flip }: { cx: number; cy: number; flip: boolean }) {
 
 // Approximate character widths (relative to fontSize) for typical fonts.
 // Used purely for auto-fit shrinking — exact width is never required.
-const CHAR_W = { bold: 0.56, italic: 0.48, regular: 0.5, caps: 0.62 };
+const CHAR_W = { bold: 0.62, italic: 0.58, regular: 0.55, caps: 0.7 };
 
 function fitSize(
   text: string,
@@ -267,7 +267,7 @@ function fitSize(
   base: number,
   cw: number = CHAR_W.bold,
   letterSpacing = 0,
-  minScale = 0.5,
+  minScale = 0.45,
 ): number {
   if (!text) return base;
   const len = text.length;
@@ -277,6 +277,13 @@ function fitSize(
   if (denom <= 0) return base;
   const fitted = (maxW - Math.max(0, len - 1) * letterSpacing) / denom;
   return Math.max(base * minScale, fitted);
+}
+
+/** Estimated rendered width of a text run in SVG units. Used to drive a
+ *  conservative `textLength` so glyphs are squeezed (not overflowed) if the
+ *  font ends up wider than the estimate. */
+function estimateW(text: string, size: number, cw: number, letterSpacing = 0): number {
+  return text.length * size * cw + Math.max(0, text.length - 1) * letterSpacing;
 }
 
 interface Block {
@@ -375,52 +382,61 @@ function Einladung({ template, data, w, h, font, aiBg }: { template: TemplateSpe
   const zeit = data.zeit || "15:00 Uhr";
   const rsvp = data.rsvp || "Bitte um Rückmeldung bis vier Wochen vor dem Fest.";
 
-  const panelX = w * 0.08;
-  const panelY = h * 0.08;
+  const panelX = w * 0.12;
+  const panelY = h * 0.1;
   const panelW = w - 2 * panelX;
   const panelH = h - 2 * panelY;
-  const innerW = panelW - 80; // text safe-width inside panel
+  const innerW = panelW - 80;
 
-  // Names: auto-fit so the longest name never exceeds 72% of card width
-  const nameMax = innerW * 0.86;
-  const nameBase = 200; // ~20mm
-  const sz1 = fitSize(partner1, nameMax, nameBase, CHAR_W.bold);
-  const sz2 = fitSize(partner2, nameMax, nameBase, CHAR_W.bold);
+  // Names: dramatically smaller base so they read like real wedding stationery.
+  // textLength below provides a hard cap that smoothly compresses if the
+  // actual rendered glyphs are wider than our estimate.
+  const nameMax = innerW * 0.85;
+  const nameBase = 120; // ~12mm
+  const sz1 = fitSize(partner1, nameMax, nameBase, CHAR_W.italic);
+  const sz2 = fitSize(partner2, nameMax, nameBase, CHAR_W.italic);
   const nameSize = Math.min(sz1, sz2);
+  const w1 = estimateW(partner1, nameSize, CHAR_W.italic);
+  const w2 = estimateW(partner2, nameSize, CHAR_W.italic);
+  const tl1 = Math.min(w1, nameMax);
+  const tl2 = Math.min(w2, nameMax);
+  const cy = panelY + panelH * 0.42;
 
   return (
     <>
       {aiBg && <GlassPanel x={panelX} y={panelY} w={panelW} h={panelH} accent={template.accent} />}
 
-      <CapsRule text="Wir heiraten" cx={w / 2} y={panelY + 90} color={template.accent} font={font}
-        size={28} letterSpacing={8} lineLen={panelW * 0.18} />
+      <CapsRule text="Wir heiraten" cx={w / 2} y={panelY + 70} color={template.accent} font={font}
+        size={22} letterSpacing={6} lineLen={panelW * 0.15} />
 
       {/* Names block — vertically centred inside the panel */}
       <g>
-        <text x={w / 2} y={h * 0.36} fontFamily={font} fontSize={nameSize}
+        <text x={w / 2} y={cy - nameSize * 0.85} fontFamily={font} fontSize={nameSize}
           fontWeight={400} fontStyle="italic" fill={template.primary}
-          textAnchor="middle" dominantBaseline="middle">{partner1}</text>
-        <text x={w / 2} y={h * 0.36 + nameSize * 0.85} fontFamily={font}
-          fontSize={nameSize * 0.6} fontStyle="italic" fill={template.accent}
+          textAnchor="middle" dominantBaseline="middle"
+          textLength={tl1} lengthAdjust="spacingAndGlyphs">{partner1}</text>
+        <text x={w / 2} y={cy} fontFamily={font}
+          fontSize={nameSize * 0.62} fontStyle="italic" fill={template.accent}
           textAnchor="middle" dominantBaseline="middle">&amp;</text>
-        <text x={w / 2} y={h * 0.36 + nameSize * 1.7} fontFamily={font} fontSize={nameSize}
+        <text x={w / 2} y={cy + nameSize * 0.85} fontFamily={font} fontSize={nameSize}
           fontWeight={400} fontStyle="italic" fill={template.primary}
-          textAnchor="middle" dominantBaseline="middle">{partner2}</text>
+          textAnchor="middle" dominantBaseline="middle"
+          textLength={tl2} lengthAdjust="spacingAndGlyphs">{partner2}</text>
       </g>
 
       {/* Date + venue block, lower third */}
-      <CapsRule text={datum} cx={w / 2} y={h * 0.74} color={template.primary} font={font}
-        size={32} letterSpacing={6} lineLen={panelW * 0.14} />
+      <CapsRule text={datum} cx={w / 2} y={panelY + panelH * 0.78} color={template.primary} font={font}
+        size={22} letterSpacing={5} lineLen={panelW * 0.12} />
 
       <CenteredStack
         template={template}
         font={font}
         w={w}
-        startY={h * 0.74 + 30}
+        startY={panelY + panelH * 0.78 + 28}
         blocks={[
-          { text: `${zeit} · ${location}`, size: 28, marginTop: 4, maxWidthPct: 0.7 },
-          { text: ort, size: 24, color: template.accent, italic: true, marginTop: 1, maxWidthPct: 0.7 },
-          { text: rsvp, size: 20, italic: true, marginTop: 10, maxWidthPct: 0.65, color: template.primary },
+          { text: `${zeit} · ${location}`, size: 22, marginTop: 4, maxWidthPct: 0.68 },
+          { text: ort, size: 20, color: template.accent, italic: true, marginTop: 1, maxWidthPct: 0.68 },
+          { text: rsvp, size: 16, italic: true, marginTop: 8, maxWidthPct: 0.62, color: template.primary },
         ]}
       />
     </>
@@ -434,11 +450,12 @@ function Tischkarte({ template, data, w, h, font, aiBg }: { template: TemplateSp
   const partner2 = data.partner2 || "";
   const couple = partner1 && partner2 ? `${partner1} & ${partner2}` : "";
 
-  const panelX = 40, panelY = 40;
-  const panelW = w - 80, panelH = h - 80;
-  const innerW = panelW - 60;
+  const panelX = 50, panelY = 50;
+  const panelW = w - 100, panelH = h - 100;
+  const innerW = panelW - 50;
 
-  const guestSize = fitSize(guest, innerW * 0.9, 180, CHAR_W.bold);
+  const guestSize = fitSize(guest, innerW * 0.9, 110, CHAR_W.italic);
+  const guestW = Math.min(estimateW(guest, guestSize, CHAR_W.italic), innerW * 0.9);
 
   return (
     <>
@@ -447,17 +464,18 @@ function Tischkarte({ template, data, w, h, font, aiBg }: { template: TemplateSp
         <rect x={30} y={30} width={w - 60} height={h - 60} stroke={template.accent} strokeWidth={0.8} fill="none" />
       )}
       {couple && (
-        <text x={w / 2} y={h / 2 - guestSize * 0.85} fontFamily={font} fontSize={20}
+        <text x={w / 2} y={h / 2 - guestSize * 0.85} fontFamily={font} fontSize={14}
           letterSpacing={3} fill={template.accent} textAnchor="middle" dominantBaseline="middle">
           {couple.toUpperCase()}
         </text>
       )}
       <text x={w / 2} y={h / 2} fontFamily={font} fontSize={guestSize}
-        fontStyle="italic" fill={template.primary} textAnchor="middle" dominantBaseline="middle">
+        fontStyle="italic" fill={template.primary} textAnchor="middle" dominantBaseline="middle"
+        textLength={guestW} lengthAdjust="spacingAndGlyphs">
         {guest}
       </text>
       {tisch && (
-        <text x={w / 2} y={h / 2 + guestSize * 0.75} fontFamily={font} fontSize={22}
+        <text x={w / 2} y={h / 2 + guestSize * 0.75} fontFamily={font} fontSize={16}
           letterSpacing={2} fill={template.accent} textAnchor="middle" dominantBaseline="middle">
           {tisch.toUpperCase()}
         </text>
@@ -478,48 +496,51 @@ function Menuekarte({ template, data, w, h, font, aiBg }: { template: TemplateSp
     { l: "Getränke", v: data.getraenke || "" },
   ].filter((c) => c.v);
 
-  const panelX = w * 0.06, panelY = h * 0.05;
+  const panelX = w * 0.1, panelY = h * 0.07;
   const panelW = w - 2 * panelX, panelH = h - 2 * panelY;
   const innerW = panelW - 80;
 
   const couple = `${partner1} & ${partner2}`;
-  const coupleSize = fitSize(couple, innerW * 0.86, 170, CHAR_W.italic);
+  const coupleSize = fitSize(couple, innerW * 0.85, 90, CHAR_W.italic);
+  const coupleW = Math.min(estimateW(couple, coupleSize, CHAR_W.italic), innerW * 0.85);
 
-  let y = h * 0.42;
+  let y = panelY + 360;
   return (
     <>
       {aiBg && <GlassPanel x={panelX} y={panelY} w={panelW} h={panelH} accent={template.accent} />}
 
-      <CapsRule text="Menü" cx={w / 2} y={panelY + 90} color={template.accent} font={font}
-        size={28} letterSpacing={10} lineLen={panelW * 0.2} />
+      <CapsRule text="Menü" cx={w / 2} y={panelY + 70} color={template.accent} font={font}
+        size={22} letterSpacing={8} lineLen={panelW * 0.18} />
 
-      <text x={w / 2} y={panelY + 200} fontFamily={font} fontSize={coupleSize}
+      <text x={w / 2} y={panelY + 180} fontFamily={font} fontSize={coupleSize}
         fontStyle="italic" fill={template.primary}
-        textAnchor="middle" dominantBaseline="middle">{couple}</text>
+        textAnchor="middle" dominantBaseline="middle"
+        textLength={coupleW} lengthAdjust="spacingAndGlyphs">{couple}</text>
 
       {datum && (
-        <text x={w / 2} y={panelY + 290} fontFamily={font} fontSize={22}
+        <text x={w / 2} y={panelY + 260} fontFamily={font} fontSize={16}
           letterSpacing={4} fill={template.accent} textAnchor="middle">{datum.toUpperCase()}</text>
       )}
 
       {courses.length === 0 && (
-        <text x={w / 2} y={y + 40} fontFamily={font} fontSize={32}
+        <text x={w / 2} y={y + 40} fontFamily={font} fontSize={26}
           fontStyle="italic" fill={template.accent} textAnchor="middle">
           Trage euer Menü ein …
         </text>
       )}
       {courses.map((c, i) => {
         const start = y;
-        y += 160;
-        const vSize = fitSize(c.v, innerW * 0.85, 38, CHAR_W.italic);
+        y += 140;
+        const vSize = fitSize(c.v, innerW * 0.88, 30, CHAR_W.italic);
+        const vW = Math.min(estimateW(c.v, vSize, CHAR_W.italic), innerW * 0.88);
         return (
           <g key={i}>
-            <text x={w / 2} y={start} fontFamily={font} fontSize={20} fill={template.accent}
+            <text x={w / 2} y={start} fontFamily={font} fontSize={14} fill={template.accent}
               textAnchor="middle" letterSpacing={4}>
               {c.l.toUpperCase()}
             </text>
-            <text x={w / 2} y={start + 60} fontFamily={font} fontSize={vSize} fontStyle="italic" fill={template.primary}
-              textAnchor="middle">
+            <text x={w / 2} y={start + 48} fontFamily={font} fontSize={vSize} fontStyle="italic" fill={template.primary}
+              textAnchor="middle" textLength={vW} lengthAdjust="spacingAndGlyphs">
               {c.v}
             </text>
           </g>
@@ -559,7 +580,8 @@ function Dankeskarte({
   if (cur) lines.push(cur);
 
   const couple = `${partner1} & ${partner2}`;
-  const coupleSize = fitSize(couple, tw, 78, CHAR_W.italic);
+  const coupleSize = fitSize(couple, tw * 0.95, 52, CHAR_W.italic);
+  const coupleW = Math.min(estimateW(couple, coupleSize, CHAR_W.italic), tw * 0.95);
 
   return (
     <>
@@ -591,21 +613,22 @@ function Dankeskarte({
           </text>
         </g>
       )}
-      <text x={tx} y={120} fontFamily={font} fontSize={22} fill={template.accent} letterSpacing={8}>
+      <text x={tx} y={110} fontFamily={font} fontSize={16} fill={template.accent} letterSpacing={6}>
         DANKE
       </text>
-      <text x={tx} y={120 + coupleSize * 0.95} fontFamily={font} fontSize={coupleSize}
-        fontStyle="italic" fill={template.primary}>
+      <text x={tx} y={110 + coupleSize * 0.95} fontFamily={font} fontSize={coupleSize}
+        fontStyle="italic" fill={template.primary}
+        textLength={coupleW} lengthAdjust="spacingAndGlyphs">
         {couple}
       </text>
       {datum && (
-        <text x={tx} y={120 + coupleSize * 1.6} fontFamily={font} fontSize={20}
+        <text x={tx} y={110 + coupleSize * 1.8} fontFamily={font} fontSize={14}
           letterSpacing={3} fill={template.accent}>
           {datum.toUpperCase()}
         </text>
       )}
       {lines.map((ln, i) => (
-        <text key={i} x={tx} y={120 + coupleSize * 2.4 + i * 38} fontFamily={font} fontSize={26} fill={template.primary}>
+        <text key={i} x={tx} y={110 + coupleSize * 2.6 + i * 30} fontFamily={font} fontSize={20} fill={template.primary}>
           {ln}
         </text>
       ))}

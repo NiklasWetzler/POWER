@@ -372,50 +372,50 @@ function renderEinladung(
   const zeit = s(data["zeit"]) || "15:00 Uhr";
   const rsvp = s(data["rsvp"]) || "Bitte um Rückmeldung bis vier Wochen vor dem Fest.";
 
-  const panelX = w * 0.08;
-  const panelY = h * 0.08;
+  const panelX = w * 0.12;
+  const panelY = h * 0.1;
   const panelW = w - 2 * panelX;
   const panelH = h - 2 * panelY;
-  const innerMargin = 6 * MM;
+  const innerMargin = 5 * MM;
   const innerW = panelW - 2 * innerMargin;
 
   if (aiBg) drawGlassPanel(doc, spec, panelX, panelY, panelW, panelH);
 
   // Top header
-  drawCapsRule(doc, spec, "Wir heiraten", w / 2, panelY + 8 * MM, 9, 3, panelW * 0.18, spec.accent);
+  drawCapsRule(doc, spec, "Wir heiraten", w / 2, panelY + 6 * MM, 7, 2.5, panelW * 0.15, spec.accent);
 
   // Names — auto-fit each so even long names stay inside the panel
   const cx = w / 2;
   const nameFont = pdfFont(spec, "italic");
-  const nameBase = 36;
-  const sz1 = fitFontSize(doc, partner1, nameFont, nameBase, innerW * 0.86);
-  const sz2 = fitFontSize(doc, partner2, nameFont, nameBase, innerW * 0.86);
+  const nameBase = 22;
+  const sz1 = fitFontSize(doc, partner1, nameFont, nameBase, innerW * 0.9);
+  const sz2 = fitFontSize(doc, partner2, nameFont, nameBase, innerW * 0.9);
   const nameSize = Math.min(sz1, sz2);
 
-  const namesCy = h * 0.42;
+  const namesCy = panelY + panelH * 0.42;
   doc.font(nameFont).fontSize(nameSize).fillColor(spec.primary)
-    .text(partner1, panelX + innerMargin, namesCy - nameSize * 1.1,
+    .text(partner1, panelX + innerMargin, namesCy - nameSize * 1.4,
       { width: panelW - 2 * innerMargin, align: "center" });
   doc.font(pdfFont(spec, "italic")).fontSize(nameSize * 0.62).fillColor(spec.accent)
-    .text("&", panelX + innerMargin, namesCy + nameSize * 0.05,
+    .text("&", panelX + innerMargin, namesCy - nameSize * 0.3,
       { width: panelW - 2 * innerMargin, align: "center" });
   doc.font(nameFont).fontSize(nameSize).fillColor(spec.primary)
-    .text(partner2, panelX + innerMargin, namesCy + nameSize * 0.9,
+    .text(partner2, panelX + innerMargin, namesCy + nameSize * 0.45,
       { width: panelW - 2 * innerMargin, align: "center" });
 
   // Date band lower third
-  drawCapsRule(doc, spec, datum, cx, h * 0.74, 11, 2, panelW * 0.14, spec.primary, "bold");
+  drawCapsRule(doc, spec, datum, cx, panelY + panelH * 0.78, 8, 2, panelW * 0.12, spec.primary, "bold");
 
-  doc.font(pdfFont(spec, "regular")).fontSize(10).fillColor(spec.primary)
-    .text(`${zeit} · ${location}`, panelX + innerMargin, h * 0.74 + 6 * MM,
+  doc.font(pdfFont(spec, "regular")).fontSize(8).fillColor(spec.primary)
+    .text(`${zeit} · ${location}`, panelX + innerMargin, panelY + panelH * 0.78 + 4 * MM,
       { width: panelW - 2 * innerMargin, align: "center" });
   if (ort) {
-    doc.font(pdfFont(spec, "italic")).fontSize(9).fillColor(spec.accent)
+    doc.font(pdfFont(spec, "italic")).fontSize(7).fillColor(spec.accent)
       .text(ort, panelX + innerMargin, doc.y + 1,
         { width: panelW - 2 * innerMargin, align: "center" });
   }
-  doc.font(pdfFont(spec, "italic")).fontSize(8).fillColor(spec.primary)
-    .text(rsvp, panelX + innerMargin, doc.y + 4 * MM,
+  doc.font(pdfFont(spec, "italic")).fontSize(6.5).fillColor(spec.primary)
+    .text(rsvp, panelX + innerMargin, doc.y + 3 * MM,
       { width: panelW - 2 * innerMargin, align: "center" });
 }
 
@@ -447,17 +447,17 @@ function renderTischkarte(
   const couple = partner1 && partner2 ? `${partner1} & ${partner2}` : "";
 
   const nameFont = pdfFont(spec, "italic");
-  const guestSize = fitFontSize(doc, guest, nameFont, 22, innerW * 0.9);
+  const guestSize = fitFontSize(doc, guest, nameFont, 14, innerW * 0.9);
 
   if (couple) {
-    doc.font(pdfFont(spec, "regular")).fontSize(7).fillColor(spec.accent)
+    doc.font(pdfFont(spec, "regular")).fontSize(5.5).fillColor(spec.accent)
       .text(couple.toUpperCase(), 0, h / 2 - guestSize - 2,
         { width: w, align: "center", characterSpacing: 2 });
   }
   doc.font(nameFont).fontSize(guestSize).fillColor(spec.primary)
     .text(guest, 0, h / 2 - guestSize / 2, { width: w, align: "center" });
   if (tisch) {
-    doc.font(pdfFont(spec, "regular")).fontSize(8).fillColor(spec.accent)
+    doc.font(pdfFont(spec, "regular")).fontSize(6).fillColor(spec.accent)
       .text(tisch.toUpperCase(), 0, h / 2 + guestSize / 2 + 2,
         { width: w, align: "center", characterSpacing: 2 });
   }
@@ -484,39 +484,39 @@ function renderMenuekarte(
     { label: "Getränke", v: s(data["getraenke"]) },
   ].filter((c) => c.v);
 
-  const panelX = w * 0.06, panelY = h * 0.05;
+  const panelX = w * 0.1, panelY = h * 0.07;
   const panelW = w - 2 * panelX, panelH = h - 2 * panelY;
-  const innerMargin = 6 * MM;
+  const innerMargin = 5 * MM;
   const innerW = panelW - 2 * innerMargin;
 
   if (aiBg) drawGlassPanel(doc, spec, panelX, panelY, panelW, panelH);
 
-  drawCapsRule(doc, spec, "Menü", w / 2, panelY + 8 * MM, 9, 4, panelW * 0.2, spec.accent);
+  drawCapsRule(doc, spec, "Menü", w / 2, panelY + 6 * MM, 7, 3, panelW * 0.18, spec.accent);
 
   const couple = `${partner1} & ${partner2}`;
   const coupleFont = pdfFont(spec, "italic");
-  const coupleSize = fitFontSize(doc, couple, coupleFont, 22, innerW * 0.86);
+  const coupleSize = fitFontSize(doc, couple, coupleFont, 14, innerW * 0.85);
   doc.font(coupleFont).fontSize(coupleSize).fillColor(spec.primary)
-    .text(couple, panelX + innerMargin, panelY + 18 * MM,
+    .text(couple, panelX + innerMargin, panelY + 13 * MM,
       { width: panelW - 2 * innerMargin, align: "center" });
 
   if (datum) {
-    doc.font(pdfFont(spec, "regular")).fontSize(8).fillColor(spec.accent)
+    doc.font(pdfFont(spec, "regular")).fontSize(6).fillColor(spec.accent)
       .text(datum.toUpperCase(), panelX + innerMargin, doc.y + 1,
         { width: panelW - 2 * innerMargin, align: "center", characterSpacing: 3 });
   }
 
-  let y = h * 0.36;
+  let y = panelY + 30 * MM;
   for (const c of courses) {
     const vFont = pdfFont(spec, "italic");
-    const vSize = fitFontSize(doc, c.v, vFont, 12, innerW * 0.85);
-    doc.font(pdfFont(spec, "regular")).fontSize(8).fillColor(spec.accent)
+    const vSize = fitFontSize(doc, c.v, vFont, 10, innerW * 0.88);
+    doc.font(pdfFont(spec, "regular")).fontSize(6).fillColor(spec.accent)
       .text(c.label.toUpperCase(), 0, y, { align: "center", width: w, characterSpacing: 4 });
     y = doc.y + 1;
     doc.font(vFont).fontSize(vSize).fillColor(spec.primary)
       .text(c.v, panelX + innerMargin, y,
         { align: "center", width: panelW - 2 * innerMargin });
-    y = doc.y + 5;
+    y = doc.y + 4;
   }
 }
 
@@ -569,20 +569,20 @@ function renderDankeskarte(
 
   if (aiBg) drawGlassPanel(doc, spec, tx - 3 * MM, 4 * MM, tw + 6 * MM, h - 8 * MM);
 
-  doc.font(pdfFont(spec, "regular")).fontSize(8).fillColor(spec.accent)
-    .text("DANKE", tx, 14 * MM, { align: "left", width: tw, characterSpacing: 6 });
+  doc.font(pdfFont(spec, "regular")).fontSize(6).fillColor(spec.accent)
+    .text("DANKE", tx, 12 * MM, { align: "left", width: tw, characterSpacing: 5 });
 
   const coupleFont = pdfFont(spec, "italic");
-  const coupleSize = fitFontSize(doc, `${partner1} & ${partner2}`, coupleFont, 20, tw);
+  const coupleSize = fitFontSize(doc, `${partner1} & ${partner2}`, coupleFont, 14, tw * 0.95);
   doc.font(coupleFont).fontSize(coupleSize).fillColor(spec.primary)
-    .text(`${partner1} & ${partner2}`, tx, doc.y + 4, { width: tw });
+    .text(`${partner1} & ${partner2}`, tx, doc.y + 3, { width: tw });
 
   if (datum) {
-    doc.font(pdfFont(spec, "regular")).fontSize(8).fillColor(spec.accent)
-      .text(datum.toUpperCase(), tx, doc.y + 3, { width: tw, characterSpacing: 3 });
+    doc.font(pdfFont(spec, "regular")).fontSize(6).fillColor(spec.accent)
+      .text(datum.toUpperCase(), tx, doc.y + 2, { width: tw, characterSpacing: 3 });
   }
-  doc.font(pdfFont(spec, "regular")).fontSize(9).fillColor(spec.primary)
-    .text(text, tx, doc.y + 6, { width: tw, lineGap: 2 });
+  doc.font(pdfFont(spec, "regular")).fontSize(7.5).fillColor(spec.primary)
+    .text(text, tx, doc.y + 5, { width: tw, lineGap: 2 });
 }
 
 export function generateDesignPdf(input: RenderInput): Promise<Buffer> {
