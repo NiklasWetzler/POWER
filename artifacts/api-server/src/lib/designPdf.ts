@@ -12,6 +12,7 @@ interface RenderInput {
   template: TemplateSpec;
   data: Record<string, unknown>;
   photoBase64?: string | null; // data URL or base64 (dankeskarte only)
+  aiBackgroundDataUrl?: string | null; // when set, replaces template bg + decoration
 }
 
 function s(v: unknown): string {
@@ -31,6 +32,30 @@ function pdfFont(spec: TemplateSpec, weight: "regular" | "bold" | "italic" = "re
 
 function drawBackground(doc: PDFKit.PDFDocument, spec: TemplateSpec, w: number, h: number) {
   doc.save().rect(0, 0, w, h).fill(spec.background).restore();
+}
+
+/** Draws either the AI-generated image (full-bleed) or the template bg + decoration. */
+function drawCanvasBg(
+  doc: PDFKit.PDFDocument,
+  spec: TemplateSpec,
+  w: number,
+  h: number,
+  aiBg?: string | null,
+) {
+  if (aiBg) {
+    try {
+      const raw = aiBg.replace(/^data:image\/[a-zA-Z+]+;base64,/, "");
+      const buf = Buffer.from(raw, "base64");
+      doc.save();
+      doc.image(buf, 0, 0, { cover: [w, h], align: "center", valign: "center" });
+      doc.restore();
+      return;
+    } catch {
+      // fall through to template bg if image broken
+    }
+  }
+  drawBackground(doc, spec, w, h);
+  drawDecoration(doc, spec, w, h);
 }
 
 function drawDecoration(doc: PDFKit.PDFDocument, spec: TemplateSpec, w: number, h: number) {
@@ -271,9 +296,9 @@ function renderEinladung(
   data: Record<string, unknown>,
   w: number,
   h: number,
+  aiBg?: string | null,
 ) {
-  drawBackground(doc, spec, w, h);
-  drawDecoration(doc, spec, w, h);
+  drawCanvasBg(doc, spec, w, h, aiBg);
 
   const partner1 = s(data["partner1"]) || "Anna";
   const partner2 = s(data["partner2"]) || "Markus";
@@ -301,11 +326,13 @@ function renderTischkarte(
   data: Record<string, unknown>,
   w: number,
   h: number,
+  aiBg?: string | null,
 ) {
-  drawBackground(doc, spec, w, h);
-  drawDecoration(doc, spec, w, h);
-  // Light border for place cards
-  doc.save().strokeColor(spec.accent).lineWidth(0.4).rect(3 * MM, 3 * MM, w - 6 * MM, h - 6 * MM).stroke().restore();
+  drawCanvasBg(doc, spec, w, h, aiBg);
+  // Light border for place cards (skip on AI bg — image already covers edges)
+  if (!aiBg) {
+    doc.save().strokeColor(spec.accent).lineWidth(0.4).rect(3 * MM, 3 * MM, w - 6 * MM, h - 6 * MM).stroke().restore();
+  }
 
   const guest = s(data["gastname"]) || "Gast";
   const tisch = s(data["tisch"]) || "";
@@ -327,9 +354,9 @@ function renderMenuekarte(
   data: Record<string, unknown>,
   w: number,
   h: number,
+  aiBg?: string | null,
 ) {
-  drawBackground(doc, spec, w, h);
-  drawDecoration(doc, spec, w, h);
+  drawCanvasBg(doc, spec, w, h, aiBg);
 
   const partner1 = s(data["partner1"]) || "Anna";
   const partner2 = s(data["partner2"]) || "Markus";
@@ -366,9 +393,9 @@ function renderDankeskarte(
   w: number,
   h: number,
   photoBase64?: string | null,
+  aiBg?: string | null,
 ) {
-  drawBackground(doc, spec, w, h);
-  drawDecoration(doc, spec, w, h);
+  drawCanvasBg(doc, spec, w, h, aiBg);
 
   // Left half: photo (or placeholder), right half: text
   const photoBoxX = 6 * MM;
@@ -438,18 +465,19 @@ export function generateDesignPdf(input: RenderInput): Promise<Buffer> {
     doc.on("error", reject);
 
     try {
+      const aiBg = input.aiBackgroundDataUrl ?? null;
       switch (input.kind) {
         case "einladung":
-          renderEinladung(doc, input.template, input.data, w, h);
+          renderEinladung(doc, input.template, input.data, w, h, aiBg);
           break;
         case "tischkarte":
-          renderTischkarte(doc, input.template, input.data, w, h);
+          renderTischkarte(doc, input.template, input.data, w, h, aiBg);
           break;
         case "menuekarte":
-          renderMenuekarte(doc, input.template, input.data, w, h);
+          renderMenuekarte(doc, input.template, input.data, w, h, aiBg);
           break;
         case "dankeskarte":
-          renderDankeskarte(doc, input.template, input.data, w, h, input.photoBase64);
+          renderDankeskarte(doc, input.template, input.data, w, h, input.photoBase64, aiBg);
           break;
       }
     } catch (err) {

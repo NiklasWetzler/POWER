@@ -6,6 +6,8 @@ interface CardCanvasProps {
   template: TemplateSpec;
   data: Record<string, string>;
   photoDataUrl?: string | null;
+  /** When set, replaces the template background + decoration with this AI-generated image */
+  aiBackgroundDataUrl?: string | null;
   /** rendered width in CSS px (height scales proportionally) */
   width?: number;
   className?: string;
@@ -15,7 +17,7 @@ interface CardCanvasProps {
  * SVG renderer for card previews. Mirrors `artifacts/api-server/src/lib/designPdf.ts`
  * so the on-screen preview matches the downloaded PDF as closely as possible.
  */
-export function CardCanvas({ kind, template, data, photoDataUrl, width = 320, className }: CardCanvasProps) {
+export function CardCanvas({ kind, template, data, photoDataUrl, aiBackgroundDataUrl, width = 320, className }: CardCanvasProps) {
   const [wMm, hMm] = KIND_SIZE_MM[kind];
   const scale = width / wMm;
   const h = hMm * scale;
@@ -34,8 +36,21 @@ export function CardCanvas({ kind, template, data, photoDataUrl, width = 320, cl
       aria-label={`Vorschau ${kind} ${template.name}`}
       style={{ display: "block", boxShadow: "0 6px 20px rgba(0,0,0,0.10)", borderRadius: 8 }}
     >
-      <rect width={vbW} height={vbH} fill={template.background} />
-      <Decoration template={template} w={vbW} h={vbH} />
+      {aiBackgroundDataUrl ? (
+        <image
+          href={aiBackgroundDataUrl}
+          x={0}
+          y={0}
+          width={vbW}
+          height={vbH}
+          preserveAspectRatio="xMidYMid slice"
+        />
+      ) : (
+        <>
+          <rect width={vbW} height={vbH} fill={template.background} />
+          <Decoration template={template} w={vbW} h={vbH} />
+        </>
+      )}
       {kind === "einladung" && <Einladung template={template} data={data} w={vbW} h={vbH} font={font} />}
       {kind === "tischkarte" && <Tischkarte template={template} data={data} w={vbW} h={vbH} font={font} />}
       {kind === "menuekarte" && <Menuekarte template={template} data={data} w={vbW} h={vbH} font={font} />}

@@ -48,6 +48,19 @@ function validateDesignBody(body: unknown, requireRequired: boolean): { ok: true
     if (typeof b.data !== "object" || b.data === null || Array.isArray(b.data)) {
       return { ok: false, error: "Ungültige Daten." };
     }
+    const ai = (b.data as Record<string, unknown>)["__aiBg"];
+    if (ai !== undefined && ai !== null) {
+      if (typeof ai !== "string") {
+        return { ok: false, error: "Ungültiges KI-Bild." };
+      }
+      if (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(ai)) {
+        return { ok: false, error: "Ungültiges KI-Bildformat." };
+      }
+      // ~6 MB decoded cap (base64 inflates ~4/3): 8.4MB string ≈ 6MB binary
+      if (ai.length > 8_400_000) {
+        return { ok: false, error: "KI-Bild zu groß." };
+      }
+    }
     out.data = b.data;
   } else if (requireRequired) {
     out.data = {};
@@ -191,11 +204,14 @@ router.get("/designs/:id/pdf", requireCustomer, async (req, res): Promise<void> 
     return;
   }
   try {
+    const data = (row.data ?? {}) as Record<string, unknown>;
+    const aiBg = typeof data["__aiBg"] === "string" ? (data["__aiBg"] as string) : null;
     const pdf = await generateDesignPdf({
       kind: row.kind as CardKind,
       template,
-      data: row.data ?? {},
+      data,
       photoBase64: row.photoBase64,
+      aiBackgroundDataUrl: aiBg,
     });
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -247,11 +263,14 @@ router.post("/designs/:id/email", requireCustomer, async (req, res): Promise<voi
 
   let pdf: Buffer;
   try {
+    const data = (row.data ?? {}) as Record<string, unknown>;
+    const aiBg = typeof data["__aiBg"] === "string" ? (data["__aiBg"] as string) : null;
     pdf = await generateDesignPdf({
       kind: row.kind as CardKind,
       template,
-      data: row.data ?? {},
+      data,
       photoBase64: row.photoBase64,
+      aiBackgroundDataUrl: aiBg,
     });
   } catch (err) {
     req.log.error({ err, designId: id }, "Failed to render design PDF for email");
