@@ -10,20 +10,43 @@ export interface CookieConsent {
 const STORAGE_KEY = "niwe-cookie-consent-v1";
 const EVT = "niwe-cookie-consent-change";
 
+// useSyncExternalStore requires getSnapshot to return a stable reference when
+// the underlying data hasn't changed — otherwise React falls into an infinite
+// re-render loop (which manifests as a frozen/white screen). We cache the
+// parsed value keyed by the raw localStorage string and only re-parse when it
+// actually changes.
+let cachedRaw: string | null = null;
+let cachedValue: CookieConsent | null = null;
+
 function read(): CookieConsent | null {
   if (typeof window === "undefined") return null;
+  let raw: string | null = null;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
+    raw = window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+  if (raw === cachedRaw) return cachedValue;
+  cachedRaw = raw;
+  if (!raw) {
+    cachedValue = null;
+    return null;
+  }
+  try {
     const parsed = JSON.parse(raw) as Partial<CookieConsent>;
-    if (typeof parsed.ts !== "number") return null;
-    return {
+    if (typeof parsed.ts !== "number") {
+      cachedValue = null;
+      return null;
+    }
+    cachedValue = {
       necessary: true,
       functional: parsed.functional === true,
       analytics: parsed.analytics === true,
       ts: parsed.ts,
     };
+    return cachedValue;
   } catch {
+    cachedValue = null;
     return null;
   }
 }
