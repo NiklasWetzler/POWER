@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, isNotNull, sql } from "drizzle-orm";
-import { db, questionnaireSubmissionsTable } from "@workspace/db";
+import { db, questionnaireSubmissionsTable, customersTable } from "@workspace/db";
 import { createTransport, fromEmail } from "./questionnairePublic";
 
 const router: IRouter = Router();
@@ -50,16 +50,26 @@ router.get("/questionnaire/submissions/:id/pdf", async (req, res): Promise<void>
     return;
   }
 
-  const buf = Buffer.from(sub.generatedPdfBase64, "base64");
-  const safeName = (sub.brautpaar ?? "vertrag").replace(/[^a-z0-9]/gi, "_");
+  // Prefer customer's offer number for filename when available
+  let idPart = (sub.brautpaar ?? "vertrag").replace(/[^a-z0-9]/gi, "_");
+  if (sub.customerId !== null) {
+    const [c] = await db.select({ angebotsnummer: customersTable.angebotsnummer })
+      .from(customersTable).where(eq(customersTable.id, sub.customerId));
+    if (c?.angebotsnummer) {
+      idPart = c.angebotsnummer.replace(/[^a-z0-9._-]/gi, "_");
+    }
+  }
+
   const prefix =
     sub.formType === "dj-vertrag" ? "DJ-Vertrag"
     : sub.formType === "musikfragebogen" ? "Musikfragebogen"
     : "Formular";
+
+  const buf = Buffer.from(sub.generatedPdfBase64, "base64");
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
-    `attachment; filename="${prefix}-${safeName}.pdf"`,
+    `attachment; filename="${prefix}-${idPart}.pdf"`,
   );
   res.send(buf);
 });

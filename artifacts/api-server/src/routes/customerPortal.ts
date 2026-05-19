@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNotNull, sql } from "drizzle-orm";
 import {
   db,
   customersTable,
@@ -108,12 +108,17 @@ router.get("/customer/submissions", requireCustomer, async (req, res): Promise<v
       location: questionnaireSubmissionsTable.location,
       status: questionnaireSubmissionsTable.status,
       adminConfirmed: questionnaireSubmissionsTable.adminConfirmed,
+      hasPdf: sql<boolean>`${isNotNull(questionnaireSubmissionsTable.generatedPdfBase64)}`,
       createdAt: questionnaireSubmissionsTable.createdAt,
     })
     .from(questionnaireSubmissionsTable)
     .where(eq(questionnaireSubmissionsTable.customerId, customerId));
 
-  res.json(rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })));
+  res.json(rows.map((r) => ({
+    ...r,
+    hasPdf: Boolean(r.hasPdf),
+    createdAt: r.createdAt.toISOString(),
+  })));
 });
 
 // POST /customer/forms/dj-vertrag/submit — generate contract PDF + email + store
@@ -254,6 +259,10 @@ router.post("/customer/forms/dj-vertrag/submit", requireCustomer, async (req, re
 router.get("/customer/submissions/:id/pdf", requireCustomer, async (req, res): Promise<void> => {
   const customerId = req.session.customerId!;
   const id = parseInt(String(req.params.id), 10);
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: "Ungültige ID." });
+    return;
+  }
 
   const [sub] = await db
     .select()
@@ -268,11 +277,19 @@ router.get("/customer/submissions/:id/pdf", requireCustomer, async (req, res): P
     return;
   }
 
+  const [customer] = await db.select({ angebotsnummer: customersTable.angebotsnummer })
+    .from(customersTable).where(eq(customersTable.id, customerId));
+
+  const prefix = sub.formType === "dj-vertrag" ? "DJ-Vertrag" : "Musikfragebogen";
+  const idPart = customer?.angebotsnummer
+    ? customer.angebotsnummer.replace(/[^a-z0-9._-]/gi, "_")
+    : sub.brautpaar.replace(/[^a-z0-9]/gi, "_");
+
   const buf = Buffer.from(sub.generatedPdfBase64, "base64");
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
-    `attachment; filename="DJ-Vertrag-${sub.brautpaar.replace(/[^a-z0-9]/gi, "_")}.pdf"`,
+    `attachment; filename="${prefix}-${idPart}.pdf"`,
   );
   res.send(buf);
 });

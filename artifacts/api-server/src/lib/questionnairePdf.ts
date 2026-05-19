@@ -50,12 +50,21 @@ function ensureSpace(doc: PDFKit.PDFDocument, needed: number) {
   }
 }
 
-function sectionTitle(doc: PDFKit.PDFDocument, title: string, gapBefore = 14, gapAfter = 6) {
-  ensureSpace(doc, 30);
+function sectionTitle(doc: PDFKit.PDFDocument, title: string, gapBefore = 16, gapAfter = 8) {
+  ensureSpace(doc, 38);
   doc.x = MARGIN_X;
   doc.y += gapBefore;
-  doc.font("Helvetica-Bold").fontSize(12).fillColor("black").text(title, { width: CONTENT_W });
-  doc.y += gapAfter;
+  const top = doc.y;
+  // Small gold accent bar to the left of the title
+  doc.save().rect(MARGIN_X, top + 1, 3, 14).fillColor("#c9a55a").fill().restore();
+  doc.font("Helvetica-Bold").fontSize(13).fillColor("#1a1a1a")
+    .text(title, MARGIN_X + 10, top, { width: CONTENT_W - 10 });
+  doc.y = Math.max(doc.y, top + 16);
+  // Hairline under section title
+  const ruleY = doc.y + 2;
+  doc.save().lineWidth(0.4).strokeColor("#e7d9b4")
+    .moveTo(MARGIN_X, ruleY).lineTo(MARGIN_X + CONTENT_W, ruleY).stroke().restore();
+  doc.y = ruleY + gapAfter;
   body(doc);
 }
 
@@ -205,7 +214,7 @@ function pageNumbers(doc: PDFKit.PDFDocument) {
     doc.page.margins.top = 0;
     doc.page.margins.bottom = 0;
     doc.font("Helvetica").fontSize(8.5).fillColor("#666").text(
-      "NIWE Weddings | Musikwunsch-Fragebogen",
+      "NIWE Weddings · Musiknachfragebogen",
       MARGIN_X, 26,
       { width: CONTENT_W, align: "right", lineBreak: false },
     );
@@ -227,7 +236,7 @@ export async function generateQuestionnairePdf(data: QuestionnaireData): Promise
       size: "A4",
       margins: { top: MARGIN_TOP, bottom: MARGIN_BOTTOM, left: MARGIN_X, right: MARGIN_X },
       bufferPages: true,
-      info: { Title: "Musikwunsch-Fragebogen", Author: "NIWE Weddings" },
+      info: { Title: "Musiknachfragebogen", Author: "NIWE Weddings" },
     });
 
     const chunks: Buffer[] = [];
@@ -240,17 +249,31 @@ export async function generateQuestionnairePdf(data: QuestionnaireData): Promise
     doc.x = MARGIN_X;
     doc.y = MARGIN_TOP;
 
-    // Title
-    doc.font("Helvetica-Bold").fontSize(20).fillColor("black")
-      .text("MUSIKWUNSCH-FRAGEBOGEN", MARGIN_X, doc.y, { width: CONTENT_W, align: "center" });
-    doc.moveDown(0.3);
-    doc.font("Helvetica").fontSize(10).fillColor("#555")
+    // Title — elegant typographic mark with gold rule
+    doc.font("Helvetica").fontSize(8.5).fillColor("#c9a55a")
+      .text("N I W E   W E D D I N G S", MARGIN_X, doc.y, {
+        width: CONTENT_W, align: "center", characterSpacing: 1.6,
+      });
+    doc.moveDown(0.4);
+    doc.font("Helvetica-Bold").fontSize(24).fillColor("#1a1a1a")
+      .text("Musiknachfragebogen", MARGIN_X, doc.y, { width: CONTENT_W, align: "center" });
+    doc.moveDown(0.4);
+    // Thin gold rule under title
+    {
+      const ruleY = doc.y;
+      const ruleW = 60;
+      const ruleX = MARGIN_X + (CONTENT_W - ruleW) / 2;
+      doc.save().lineWidth(0.8).strokeColor("#c9a55a")
+        .moveTo(ruleX, ruleY).lineTo(ruleX + ruleW, ruleY).stroke().restore();
+    }
+    doc.moveDown(0.6);
+    doc.font("Helvetica").fontSize(9.5).fillColor("#666")
       .text(
-        "Bitte möglichst vollständig ausfüllen – je mehr wir wissen, desto besser wird eure musikalische Hochzeitsreise!",
+        "Bitte möglichst vollständig ausfüllen — je mehr wir wissen, desto besser wird euer großer Tag.",
         MARGIN_X, doc.y, { width: CONTENT_W, align: "center" },
       );
     doc.fillColor("black");
-    doc.moveDown(0.5);
+    doc.moveDown(0.8);
 
     // ═══════════════════════════ 1. Allgemeine Angaben ═══════════════════════
     sectionTitle(doc, "1. Allgemeine Angaben", 6);
