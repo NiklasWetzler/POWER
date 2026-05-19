@@ -1,8 +1,13 @@
 import { Router, type IRouter } from "express";
 import { eq, and } from "drizzle-orm";
 import { db, customersTable, formAssignmentsTable } from "@workspace/db";
+import { requireAdmin } from "../lib/authMiddleware";
 
 const router: IRouter = Router();
+
+// Defense-in-depth: guard every route in this router even if the parent
+// mount order changes later.
+router.use(requireAdmin);
 
 const VALID_FORM_IDS = new Set(["musikfragebogen", "dj-vertrag"]);
 const DEFAULT_ASSIGNED_FORMS = ["musikfragebogen"];

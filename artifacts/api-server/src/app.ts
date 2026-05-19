@@ -2,7 +2,7 @@ import express, { type Express, type Request } from "express";
 import cors from "cors";
 import session from "express-session";
 import helmet from "helmet";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import connectPgSimple from "connect-pg-simple";
 import pg from "pg";
 import pinoHttp from "pino-http";
@@ -89,13 +89,27 @@ app.use(express.urlencoded({ extended: true, limit: "256kb" }));
 
 // ── Session store: Postgres-backed so sessions survive restarts/scale ──────
 const PgSession = connectPgSimple(session);
-const sessionStore = process.env.DATABASE_URL
-  ? new PgSession({
-      pool: new pg.Pool({ connectionString: process.env.DATABASE_URL }),
-      tableName: "user_sessions",
-      createTableIfMissing: true,
-    })
-  : undefined;
+let sessionStore: session.Store | undefined;
+if (process.env.DATABASE_URL) {
+  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  // Bootstrap the session table ourselves. We can't rely on
+  // connect-pg-simple's `createTableIfMissing` because it reads a SQL file
+  // from disk, which is missing in our esbuild-bundled output.
+  void pool.query(`
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      sid VARCHAR NOT NULL PRIMARY KEY,
+      sess JSON NOT NULL,
+      expire TIMESTAMP(6) NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS user_sessions_expire_idx ON user_sessions (expire);
+  `).catch((err) => logger.error({ err }, "Failed to ensure session table"));
+
+  sessionStore = new PgSession({
+    pool,
+    tableName: "user_sessions",
+    createTableIfMissing: false,
+  });
+}
 
 app.use(
   session({
@@ -114,7 +128,8 @@ app.use(
 );
 
 // ── Rate limits on sensitive endpoints ──────────────────────────────────────
-const keyByIp = (req: Request) => req.ip ?? "unknown";
+// Use the library's IPv6-safe helper so /64 subnets can't be used to bypass limits.
+const keyByIp = (req: Request) => ipKeyGenerator(req.ip ?? "");
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60_000, // 15 min
