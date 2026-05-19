@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, AlertCircle } from "lucide-react";
 
 interface InviteInfo {
   username: string;
@@ -24,6 +24,10 @@ export default function AdminEinladung() {
   const [pw2, setPw2] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const pwTooShort = pw.length > 0 && pw.length < 10;
+  const pwMismatch = pw2.length > 0 && pw !== pw2;
 
   useEffect(() => {
     if (!token) return;
@@ -43,7 +47,15 @@ export default function AdminEinladung() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pw.length < 10 || pw !== pw2) return;
+    setSubmitError(null);
+    if (pw.length < 10) {
+      setSubmitError("Das Passwort muss mindestens 10 Zeichen lang sein.");
+      return;
+    }
+    if (pw !== pw2) {
+      setSubmitError("Die beiden Passwörter stimmen nicht überein.");
+      return;
+    }
     setSubmitting(true);
     try {
       const r = await fetch(`/api/admin-invite/${encodeURIComponent(token)}`, {
@@ -51,14 +63,18 @@ export default function AdminEinladung() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: pw }),
       });
+      const data = (await r.json().catch(() => ({}))) as { error?: string };
       if (!r.ok) {
-        const err = (await r.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? "Fehler.");
+        throw new Error(data.error ?? `Server-Fehler (${r.status}).`);
       }
       setDone(true);
       setTimeout(() => navigate("/admin"), 2500);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "Fehler.");
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Verbindung fehlgeschlagen. Bitte erneut versuchen.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -100,22 +116,52 @@ export default function AdminEinladung() {
                 </div>
                 <div>
                   <Label htmlFor="pw">Neues Passwort (min. 10 Zeichen)</Label>
-                  <Input id="pw" type="password" value={pw} onChange={(e) => setPw(e.target.value)} required />
+                  <Input
+                    id="pw"
+                    type="password"
+                    value={pw}
+                    onChange={(e) => { setPw(e.target.value); setSubmitError(null); }}
+                    required
+                    autoComplete="new-password"
+                  />
+                  {pwTooShort && (
+                    <p className="text-xs text-amber-700 mt-1">
+                      Noch {10 - pw.length} Zeichen bis zur Mindestlänge.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="pw2">Passwort wiederholen</Label>
-                  <Input id="pw2" type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} required />
-                  {pw2 && pw !== pw2 && (
+                  <Input
+                    id="pw2"
+                    type="password"
+                    value={pw2}
+                    onChange={(e) => { setPw2(e.target.value); setSubmitError(null); }}
+                    required
+                    autoComplete="new-password"
+                  />
+                  {pwMismatch && (
                     <p className="text-xs text-red-600 mt-1">Passwörter stimmen nicht überein.</p>
                   )}
                 </div>
+
+                {submitError && (
+                  <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{submitError}</span>
+                  </div>
+                )}
+
                 <Button
                   type="submit"
                   className="w-full bg-amber-500 hover:bg-amber-600"
-                  disabled={submitting || pw.length < 10 || pw !== pw2}
+                  disabled={submitting}
                 >
-                  Passwort setzen & loslegen
+                  {submitting ? "Wird gespeichert…" : "Passwort setzen & loslegen"}
                 </Button>
+                <p className="text-[11px] text-muted-foreground text-center">
+                  Tipp: Mindestens 10 Zeichen, gerne mit Zahlen oder Sonderzeichen.
+                </p>
               </form>
             )}
           </CardContent>
