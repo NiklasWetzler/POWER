@@ -132,10 +132,6 @@ export default function Karten() {
   };
 
   const generateAiBackgrounds = async () => {
-    if (!loggedIn) {
-      setShowLoginGate(true);
-      return;
-    }
     setAiGenerating(true);
     setAiCandidates([]);
     setAiSelected(null);

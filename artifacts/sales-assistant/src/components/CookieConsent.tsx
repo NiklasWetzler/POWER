@@ -72,6 +72,8 @@ export function CookieConsent() {
               </h2>
               <p className="text-sm text-gray-600 mt-1 leading-relaxed">
                 Wir verwenden nur das, was wirklich nötig ist. Ihr entscheidet, was zusätzlich erlaubt sein soll.
+                Wenn ihr unseren KI-Karten-Designer nutzt, werden euer gewählter Stil und Prompt an unseren KI-Anbieter
+                <strong> Pollinations.ai</strong> übertragen — niemals euer Name, eure E-Mail oder eure Fotos.
                 Mehr Details findet ihr in unserer{" "}
                 <Link href="/datenschutz">
                   <span className="text-amber-600 hover:text-amber-700 underline cursor-pointer">Datenschutzerklärung</span>
@@ -103,9 +105,10 @@ export function CookieConsent() {
               />
             </div>
           ) : (
-            <ul className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-gray-600">
+            <ul className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-gray-600">
               <li className="bg-gray-50 border border-gray-100 rounded p-2"><strong>Notwendig:</strong> immer aktiv</li>
-              <li className="bg-gray-50 border border-gray-100 rounded p-2"><strong>Funktional:</strong> z. B. Karten-Entwürfe merken</li>
+              <li className="bg-gray-50 border border-gray-100 rounded p-2"><strong>Funktional:</strong> Karten-Entwürfe merken</li>
+              <li className="bg-gray-50 border border-gray-100 rounded p-2"><strong>KI-Designer:</strong> auf Wunsch nutzbar</li>
               <li className="bg-gray-50 border border-gray-100 rounded p-2"><strong>Statistik:</strong> derzeit nicht im Einsatz</li>
             </ul>
           )}

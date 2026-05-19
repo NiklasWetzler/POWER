@@ -199,6 +199,23 @@ export default function Datenschutz() {
           </SubSection>
         </Section>
 
+        {/* 7a. KI-gestützter Karten-Designer */}
+        <Section number="7a." title="KI-gestützter Karten-Designer (Pollinations.ai)">
+          <p>Auf unserer Website bieten wir einen kostenlosen Karten-Designer an, mit dem Ihr eure Hochzeitseinladung von einer KI gestalten lassen könnt. Für die Erzeugung der Hintergrundbilder nutzen wir einen externen KI-Dienst:</p>
+          <div className="rounded-xl border border-gray-200 bg-white px-5 py-4 leading-7">
+            <p className="font-semibold text-gray-900">Pollinations.ai</p>
+            <p>Pollinations GmbH (Anbieter des Bildgenerierungsdienstes „Flux")</p>
+            <p>Webseite: <a href="https://pollinations.ai" target="_blank" rel="noopener noreferrer" className="hover:text-amber-600 underline">pollinations.ai</a></p>
+          </div>
+          <p><span className="font-medium text-gray-800">Welche Daten werden übertragen?</span><br />
+            Wenn ihr ein KI-Design generieren lasst, übermitteln wir an Pollinations.ai ausschließlich euren gewählten Stil bzw. den Beschreibungstext (Prompt) sowie technische Verbindungsdaten (insbesondere die IP-Adresse unseres Servers). <strong>Eure E-Mail-Adresse, euer Name oder andere persönliche Daten werden nicht übertragen.</strong> Auch von euch hochgeladene Fotos werden nicht an Pollinations.ai gesendet — diese werden ausschließlich lokal in eurem Browser bzw. nach dem Speichern auf unseren Servern in der EU verarbeitet.</p>
+          <p><span className="font-medium text-gray-800">Zweck:</span> Erzeugung von Bildvorschlägen für eure Hochzeitseinladung mittels KI-Bildgenerierung.</p>
+          <p><span className="font-medium text-gray-800">Rechtsgrundlage:</span> Art. 6 Abs. 1 lit. a DSGVO (Einwilligung durch aktive Nutzung des Karten-Designers) sowie Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche/vertragliche Bereitstellung der Funktion).</p>
+          <p><span className="font-medium text-gray-800">Speicherdauer:</span> Die generierten Bilder werden nur so lange in eurem Browser-Entwurf bzw. nach dem Speichern in unserem System vorgehalten, wie ihr sie selbst aufbewahrt. Ihr könnt euren Entwurf und die gespeicherten Karten jederzeit löschen.</p>
+          <p><span className="font-medium text-gray-800">Drittlandübermittlung:</span> Eine Übermittlung in Drittländer außerhalb der EU/EWR kann technisch nicht ausgeschlossen werden, da Pollinations.ai weltweit Rechenkapazitäten nutzt. Wir empfehlen, in eurem Prompt keine personenbezogenen Daten einzutragen.</p>
+          <p><span className="font-medium text-gray-800">Hinweis zur KI:</span> Die erzeugten Bilder sind Ergebnis eines automatisierten Bildgenerierungsverfahrens (Generative KI). Es findet keine Profilbildung und keine ausschließlich automatisierte Entscheidung im Sinne von Art. 22 DSGVO statt. Die endgültige Auswahl und Verwendung der Karte trefft ihr immer selbst.</p>
+        </Section>
+
         {/* 8. Social Media */}
         <Section number="8." title="Social Media & Einbindungen von Drittanbietern">
           <SubSection number="8.1" title="Instagram (Profil & Einbindung)">

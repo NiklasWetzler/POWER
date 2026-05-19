@@ -108,6 +108,15 @@ function AdminLoginRoute() {
   return <AdminLogin onLogin={login} />;
 }
 
+// ── Scroll to top on route change ────────────────────────────
+function ScrollToTop() {
+  const [location] = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+  }, [location]);
+  return null;
+}
+
 // ── Router ───────────────────────────────────────────────────
 function Router() {
   return (
@@ -203,6 +212,7 @@ function AppInner() {
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <ScrollToTop />
               <Router />
             </WouterRouter>
             <Toaster />

@@ -261,11 +261,11 @@ export function HochzeitsTimeline() {
           </p>
         </div>
 
-        <Card className="border-gray-200 shadow-sm">
-          <CardContent className="p-5 sm:p-6">
-            <div className="max-w-sm mx-auto space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="wedding-date" className="text-sm font-medium text-gray-700 block text-center">
+        <Card className="border-gray-200 shadow-sm max-w-md mx-auto">
+          <CardContent className="p-4 sm:p-5">
+            <div className="max-w-[220px] mx-auto space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="wedding-date" className="text-xs font-medium text-gray-600 block text-center uppercase tracking-wider">
                   Euer Hochzeitsdatum
                 </Label>
                 <Input
@@ -274,7 +274,7 @@ export function HochzeitsTimeline() {
                   min={minDate}
                   value={weddingDateStr}
                   onChange={(e) => setWeddingDateStr(e.target.value)}
-                  className="bg-white h-12 text-base px-3 border-amber-200 focus-visible:ring-amber-400 text-center"
+                  className="bg-white h-10 text-sm px-2 border-amber-200 focus-visible:ring-amber-400 text-center"
                 />
               </div>
               {weddingDateStr && weddingDate && (

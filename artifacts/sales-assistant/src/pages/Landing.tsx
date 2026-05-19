@@ -119,12 +119,12 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
                 </Button>
               </a>
             </div>
-            <div className="mt-12 flex items-center gap-6 text-xs text-white/70">
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/70">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
                 <span>DSGVO-konform · Server in der EU</span>
               </div>
-              <div className="hidden sm:flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5 text-emerald-300" />
                 <span>Verschlüsselte Übertragung</span>
               </div>
@@ -210,7 +210,7 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
       </div>
 
       {/* Karten-Designer (öffentlich, Login erst beim Speichern) */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-12 sm:pt-8 sm:pb-16">
         <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-white to-rose-50 border border-amber-100 rounded-3xl p-8 sm:p-14 text-center shadow-sm">
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
           <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-rose-200/30 blur-3xl pointer-events-none" />
