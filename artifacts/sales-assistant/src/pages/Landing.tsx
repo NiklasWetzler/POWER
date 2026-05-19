@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Link } from "wouter";
+import { HochzeitsTimeline } from "@/components/HochzeitsTimeline";
 
 interface CustomerInfo {
   id: number;
@@ -157,6 +158,9 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
           </Card>
         </div>
       </div>
+
+      {/* Hochzeits-Timeline (öffentlich nutzbar, kein Login nötig) */}
+      <HochzeitsTimeline />
 
       <footer className="border-t border-gray-100 py-5 text-center text-xs text-gray-400">
         <div className="space-x-3">
