@@ -146,22 +146,37 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
                   </a>
                 </p>
               </div>
+
+              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-center gap-2 text-[11px] text-gray-500">
+                <Lock className="w-3 h-3 text-emerald-600" />
+                <span>
+                  Verschlüsselte Übertragung · Sicheres Login · DSGVO-konform
+                </span>
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      <footer className="border-t border-gray-100 py-5 text-center text-xs text-gray-400 space-x-3">
-        <span>NIWE Weddings · NIWE Events · info@niwe-events.com</span>
-        <Link href="/impressum">
-          <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">Impressum</span>
-        </Link>
-        <Link href="/datenschutz">
-          <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">Datenschutz</span>
-        </Link>
-        <Link href="/agb">
-          <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">AGB &amp; Widerruf</span>
-        </Link>
+      <footer className="border-t border-gray-100 py-5 text-center text-xs text-gray-400">
+        <div className="space-x-3">
+          <span>NIWE Weddings · NIWE Events · info@niwe-events.com</span>
+          <Link href="/impressum">
+            <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">Impressum</span>
+          </Link>
+          <Link href="/datenschutz">
+            <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">Datenschutz</span>
+          </Link>
+          <Link href="/agb">
+            <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">AGB &amp; Widerruf</span>
+          </Link>
+        </div>
+        <div className="mt-2 flex items-center justify-center gap-1.5 text-gray-500">
+          <Lock className="w-3 h-3 text-emerald-600" />
+          <span>
+            Eure Daten sind bei uns sicher: HTTPS-Verschlüsselung, geschütztes Login, Speicherung in der EU, DSGVO-konform.
+          </span>
+        </div>
       </footer>
     </div>
   );
