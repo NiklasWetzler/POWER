@@ -9,9 +9,7 @@ import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 
-router.use(requireSuperAdmin);
-
-router.get("/admin/staff", async (_req, res): Promise<void> => {
+router.get("/admin/staff", requireSuperAdmin, async (_req, res): Promise<void> => {
   const rows = await db
     .select({
       id: adminUsersTable.id,
@@ -44,7 +42,7 @@ router.get("/admin/staff", async (_req, res): Promise<void> => {
   );
 });
 
-router.post("/admin/staff", async (req, res): Promise<void> => {
+router.post("/admin/staff", requireSuperAdmin, async (req, res): Promise<void> => {
   const { username, name, email, mode, password } = req.body as {
     username?: string;
     name?: string;
@@ -155,7 +153,7 @@ router.post("/admin/staff", async (req, res): Promise<void> => {
   });
 });
 
-router.delete("/admin/staff/:id", async (req, res): Promise<void> => {
+router.delete("/admin/staff/:id", requireSuperAdmin, async (req, res): Promise<void> => {
   const id = parseInt(String(req.params.id), 10);
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: "Ungültige ID." });
