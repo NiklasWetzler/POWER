@@ -82,7 +82,7 @@ export default function Kundenansicht() {
         </p>
       </div>
 
-      <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2 text-xs text-amber-900">
+      <div className="flex items-start gap-2 rounded-md border-l-4 border-amber-500 bg-amber-50 px-3 py-2 text-xs text-amber-700">
         <Info className="w-4 h-4 shrink-0 mt-0.5" />
         <span>
           <strong>Achtung:</strong> Aktionen in der Vorschau sind <em>echt</em> für den jeweiligen Kunden
