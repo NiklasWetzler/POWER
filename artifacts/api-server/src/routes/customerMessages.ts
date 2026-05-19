@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import express, { Router, type IRouter } from "express";
 import { eq, and, desc, isNull, sql } from "drizzle-orm";
 import { db, customerMessagesTable, customersTable } from "@workspace/db";
 import { requireCustomer, requireAdmin } from "../lib/authMiddleware";
@@ -72,9 +72,12 @@ router.get("/customer/messages/:id/pdf", requireCustomer, async (req, res): Prom
     return;
   }
 
+  // Sanitize filename: strip CR/LF + quote chars to prevent header injection
+  const safeName = (msg.pdfFilename ?? "anhang.pdf").replace(/[\r\n"\\]/g, "_").slice(0, 200);
+
   const buf = Buffer.from(msg.pdfBase64, "base64");
   res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", `inline; filename="${msg.pdfFilename ?? "anhang.pdf"}"`);
+  res.setHeader("Content-Disposition", `inline; filename="${safeName}"`);
   res.send(buf);
 });
 
@@ -106,7 +109,9 @@ router.get("/admin/customers/:id/messages", requireAdmin, async (req, res): Prom
 });
 
 // POST /admin/customers/:id/messages — send a new message (with optional PDF base64)
-router.post("/admin/customers/:id/messages", requireAdmin, async (req, res): Promise<void> => {
+// Larger body limit only on this admin-only route (so PDFs up to ~12MB base64 fit)
+const adminMessageBodyParser = express.json({ limit: "16mb" });
+router.post("/admin/customers/:id/messages", requireAdmin, adminMessageBodyParser, async (req, res): Promise<void> => {
   const customerId = parseInt(String(req.params.id), 10);
   const { subject, body, pdfBase64, pdfFilename } = req.body as {
     subject?: string;

@@ -22,27 +22,34 @@ router.post("/customer/login", async (req, res): Promise<void> => {
     return;
   }
 
-  req.session.customerId = customer.id;
-  req.session.save((err) => {
-    if (err) {
-      res.status(500).json({ error: "Session konnte nicht gespeichert werden." });
+  // Regenerate session ID on login to prevent session fixation
+  req.session.regenerate((regenErr) => {
+    if (regenErr) {
+      res.status(500).json({ error: "Session konnte nicht erstellt werden." });
       return;
     }
-    res.json({
-      success: true,
-      customer: {
-        id: customer.id,
-        name: customer.name,
-        email: customer.email,
-        hochzeitsdatum: customer.hochzeitsdatum ?? null,
-      },
+    req.session.customerId = customer.id;
+    req.session.save((err) => {
+      if (err) {
+        res.status(500).json({ error: "Session konnte nicht gespeichert werden." });
+        return;
+      }
+      res.json({
+        success: true,
+        customer: {
+          id: customer.id,
+          name: customer.name,
+          email: customer.email,
+          hochzeitsdatum: customer.hochzeitsdatum ?? null,
+        },
+      });
     });
   });
 });
 
 router.post("/customer/logout", (req, res): void => {
   req.session.destroy(() => {
-    res.clearCookie("connect.sid");
+    res.clearCookie("niwe.sid");
     res.json({ success: true });
   });
 });

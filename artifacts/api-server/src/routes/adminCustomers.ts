@@ -127,11 +127,30 @@ router.patch("/admin/customers/:id", async (req, res): Promise<void> => {
   }
 });
 
-// DELETE /admin/customers/:id — remove a customer account
+// DELETE /admin/customers/:id — remove a customer account and all related PII
 router.delete("/admin/customers/:id", async (req, res): Promise<void> => {
   const id = parseInt(req.params.id, 10);
-  await db.delete(formAssignmentsTable).where(eq(formAssignmentsTable.customerId, id));
-  await db.delete(customersTable).where(eq(customersTable.id, id));
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: "Ungültige ID." });
+    return;
+  }
+
+  // Lazy imports to avoid widening the top-level dependency surface
+  const {
+    questionnaireSubmissionsTable,
+    customerMessagesTable,
+    chatMessagesTable,
+    appointmentsTable,
+  } = await import("@workspace/db");
+
+  await db.transaction(async (tx) => {
+    await tx.delete(formAssignmentsTable).where(eq(formAssignmentsTable.customerId, id));
+    await tx.delete(questionnaireSubmissionsTable).where(eq(questionnaireSubmissionsTable.customerId, id));
+    await tx.delete(customerMessagesTable).where(eq(customerMessagesTable.customerId, id));
+    await tx.delete(chatMessagesTable).where(eq(chatMessagesTable.customerId, id));
+    await tx.delete(appointmentsTable).where(eq(appointmentsTable.customerId, id));
+    await tx.delete(customersTable).where(eq(customersTable.id, id));
+  });
   res.json({ success: true });
 });
 

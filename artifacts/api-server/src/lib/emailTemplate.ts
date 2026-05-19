@@ -2,13 +2,25 @@ interface FormData {
   [key: string]: unknown;
 }
 
+// HTML-escape any user-supplied data before injecting it into the email template.
+// Without this, prospect-controlled text could inject scripts/markup into the
+// admin's mail client.
+function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function row(label: string, value: unknown): string {
   if (!value || (Array.isArray(value) && value.length === 0)) return "";
   const display = Array.isArray(value) ? value.join(", ") : String(value);
   return `
     <tr>
-      <td style="padding:6px 12px;width:220px;color:#555;vertical-align:top;font-weight:600;white-space:nowrap;">${label}</td>
-      <td style="padding:6px 12px;color:#222;">${display}</td>
+      <td style="padding:6px 12px;width:220px;color:#555;vertical-align:top;font-weight:600;white-space:nowrap;">${esc(label)}</td>
+      <td style="padding:6px 12px;color:#222;">${esc(display)}</td>
     </tr>`;
 }
 
@@ -16,7 +28,7 @@ function section(title: string, rows: string): string {
   if (!rows.trim()) return "";
   return `
     <tr>
-      <td colspan="2" style="padding:16px 12px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;border-top:1px solid #eee;">${title}</td>
+      <td colspan="2" style="padding:16px 12px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;border-top:1px solid #eee;">${esc(title)}</td>
     </tr>
     ${rows}`;
 }
@@ -107,8 +119,8 @@ export function buildEmailHtml(brautpaar: string, datum: string | undefined, loc
         </tr>
         <tr>
           <td style="padding:24px 32px 8px;">
-            <p style="margin:0;font-size:22px;font-weight:700;color:#111;">${brautpaar}</p>
-            <p style="margin:4px 0 0;font-size:13px;color:#888;">${datum ?? "–"} · ${location ?? "–"}</p>
+            <p style="margin:0;font-size:22px;font-weight:700;color:#111;">${esc(brautpaar)}</p>
+            <p style="margin:4px 0 0;font-size:13px;color:#888;">${esc(datum ?? "–")} · ${esc(location ?? "–")}</p>
           </td>
         </tr>
         <tr>

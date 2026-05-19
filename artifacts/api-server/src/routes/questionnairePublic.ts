@@ -18,7 +18,8 @@ export function createTransport() {
     secure: port === 465,
     auth: { user, pass },
     authMethod: "LOGIN",
-    tls: { rejectUnauthorized: false },
+    // Enforce certificate validation; only allow opt-out via env for debugging
+    tls: { rejectUnauthorized: process.env.SMTP_INSECURE !== "1" },
   });
 }
 
