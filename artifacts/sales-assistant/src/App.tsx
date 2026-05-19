@@ -39,6 +39,7 @@ import Dashboard from "@/pages/Dashboard";
 import Profil from "@/pages/admin/Profil";
 import Team from "@/pages/admin/Team";
 import Aktivitaeten from "@/pages/admin/Aktivitaeten";
+import Kundenansicht from "@/pages/admin/Kundenansicht";
 import AdminEinladung from "@/pages/AdminEinladung";
 
 const queryClient = new QueryClient({
@@ -169,6 +170,9 @@ function Router() {
       </Route>
       <Route path="/admin/aktivitaeten">
         {() => <AdminRoute><Aktivitaeten /></AdminRoute>}
+      </Route>
+      <Route path="/admin/kundenansicht">
+        {() => <AdminRoute><Kundenansicht /></AdminRoute>}
       </Route>
 
       <Route component={NotFound} />

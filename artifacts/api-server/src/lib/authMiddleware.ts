@@ -47,10 +47,22 @@ export async function requireSuperAdmin(req: Request, res: Response, next: NextF
   next();
 }
 
-export function requireCustomer(req: Request, res: Response, next: NextFunction): void {
-  if (req.session.customerId) {
-    next();
+export async function requireCustomer(req: Request, res: Response, next: NextFunction): Promise<void> {
+  if (!req.session.customerId) {
+    res.status(401).json({ error: "Nicht autorisiert. Bitte einloggen." });
     return;
   }
-  res.status(401).json({ error: "Nicht autorisiert. Bitte einloggen." });
+  // If this is a super-admin impersonation session, re-validate that the
+  // owning admin is still a super-admin. Prevents stale preview access if
+  // the admin gets downgraded or deleted mid-session.
+  if (req.session.previewCustomerId) {
+    const admin = await loadAdmin(req);
+    if (!admin || !admin.isSuperAdmin) {
+      delete req.session.customerId;
+      delete req.session.previewCustomerId;
+      res.status(401).json({ error: "Vorschau-Berechtigung erloschen. Bitte erneut einloggen." });
+      return;
+    }
+  }
+  next();
 }

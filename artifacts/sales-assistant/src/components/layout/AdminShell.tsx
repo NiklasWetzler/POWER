@@ -12,6 +12,7 @@ import {
   UserCog,
   UsersRound,
   Activity,
+  Eye,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ const adminSelfItems: NavItem[] = [
 ];
 
 const superAdminItems: NavItem[] = [
+  { href: "/admin/kundenansicht", label: "Kundenansicht", icon: Eye, superAdminOnly: true },
   { href: "/admin/team", label: "Mitarbeiter", icon: UsersRound, superAdminOnly: true },
   { href: "/admin/aktivitaeten", label: "Aktivitäten", icon: Activity, superAdminOnly: true },
 ];

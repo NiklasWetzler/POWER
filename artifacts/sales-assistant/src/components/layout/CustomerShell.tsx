@@ -1,10 +1,11 @@
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { Home, FileText, Inbox, Mail, LogOut, MessageCircle } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Home, FileText, Inbox, Mail, LogOut, MessageCircle, Eye, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
 import { Logo } from "@/components/Logo";
+import { useToast } from "@/hooks/use-toast";
 
 const navItems: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; key?: string }[] = [
   { href: "/portal", label: "Startseite", icon: Home, exact: true },
@@ -15,8 +16,26 @@ const navItems: { href: string; label: string; icon: React.ComponentType<{ class
 ];
 
 export function CustomerShell({ children, onLogout }: { children: React.ReactNode; onLogout: () => void }) {
-  const [location] = useLocation();
-  const { customer } = useCustomerAuth();
+  const [location, navigate] = useLocation();
+  const { customer, preview, refresh } = useCustomerAuth();
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  const stopPreview = async () => {
+    try {
+      const r = await fetch("/api/admin/preview/stop", { method: "POST", credentials: "include" });
+      if (!r.ok) throw new Error("Vorschau konnte nicht beendet werden.");
+      await refresh();
+      void qc.invalidateQueries();
+      navigate("/admin/kundenansicht");
+    } catch (e) {
+      toast({
+        title: "Fehler",
+        description: e instanceof Error ? e.message : "Unbekannter Fehler.",
+        variant: "destructive",
+      });
+    }
+  };
   const { data: unread } = useQuery<{ count: number }>({
     queryKey: ["customer-unread-count"],
     queryFn: async () => {
@@ -41,8 +60,34 @@ export function CustomerShell({ children, onLogout }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Preview banner: shown when a super-admin is impersonating a customer */}
+      {preview && (
+        <div className="bg-amber-500 text-white text-xs sm:text-sm sticky top-0 z-20">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 h-10 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <Eye className="w-4 h-4 shrink-0" />
+              <span className="truncate">
+                <strong>Kundenansicht-Vorschau</strong>
+                {customer ? <> als <strong>{customer.name}</strong></> : null}
+                {" "}— alle Aktionen sind echt für diesen Kunden.
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="bg-white text-amber-700 hover:bg-amber-50 h-7 px-2 shrink-0"
+              onClick={() => void stopPreview()}
+            >
+              <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+              <span className="hidden sm:inline">Vorschau beenden</span>
+              <span className="sm:hidden">Beenden</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Top nav */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className={cn("bg-white border-b border-gray-200 sticky z-10", preview ? "top-10" : "top-0")}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-4 h-16">
           <Link href="/portal">
             <div className="cursor-pointer">

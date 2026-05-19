@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
-import { db, customersTable } from "@workspace/db";
+import { db, customersTable, adminUsersTable } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -60,6 +60,24 @@ router.get("/customer/me", async (req, res): Promise<void> => {
     res.json({ loggedIn: false });
     return;
   }
+  // If this is a preview session, ensure the owning admin is still a super-admin.
+  if (req.session.previewCustomerId) {
+    const adminId = req.session.adminId;
+    let stillAllowed = false;
+    if (adminId) {
+      const [admin] = await db
+        .select({ isSuperAdmin: adminUsersTable.isSuperAdmin })
+        .from(adminUsersTable)
+        .where(eq(adminUsersTable.id, adminId));
+      stillAllowed = admin?.isSuperAdmin === true;
+    }
+    if (!stillAllowed) {
+      delete req.session.customerId;
+      delete req.session.previewCustomerId;
+      res.json({ loggedIn: false });
+      return;
+    }
+  }
 
   const [customer] = await db
     .select({
@@ -77,7 +95,11 @@ router.get("/customer/me", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json({ loggedIn: true, customer });
+  const preview = req.session.previewCustomerId === customer.id
+    ? { active: true as const, customerId: customer.id }
+    : null;
+
+  res.json({ loggedIn: true, customer, preview });
 });
 
 export default router;

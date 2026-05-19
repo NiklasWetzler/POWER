@@ -18,6 +18,7 @@ import adminProfileRouter from "./adminProfile";
 import adminStaffRouter from "./adminStaff";
 import adminActivityRouter from "./adminActivityRoute";
 import adminInviteRouter from "./adminInvite";
+import adminPreviewRouter from "./adminPreview";
 import { requireAdmin } from "../lib/authMiddleware";
 
 const router: IRouter = Router();
@@ -43,6 +44,7 @@ router.use(appointmentsRouter);
 router.use(adminProfileRouter);
 router.use(adminStaffRouter);
 router.use(adminActivityRouter);
+router.use(adminPreviewRouter);
 
 // ── Admin (admin session required) ────────────────────────
 router.use(requireAdmin);

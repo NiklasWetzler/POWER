@@ -16,7 +16,9 @@ export type AdminAction =
   | "staff.invited"
   | "staff.deleted"
   | "staff.password_set"
-  | "profile.updated";
+  | "profile.updated"
+  | "preview.started"
+  | "preview.stopped";
 
 export async function logActivity(
   admin: Pick<AdminUser, "id" | "name"> | { id: null; name: string },
