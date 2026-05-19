@@ -162,6 +162,28 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
       {/* Hochzeits-Timeline (öffentlich nutzbar, kein Login nötig) */}
       <HochzeitsTimeline />
 
+      {/* Karten-Designer (öffentlich, Login erst beim Speichern) */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <div className="bg-gradient-to-br from-amber-50 to-rose-50 border border-amber-100 rounded-2xl p-6 sm:p-10 text-center">
+          <div className="inline-flex items-center gap-1.5 bg-white border border-amber-200 text-amber-700 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wider mb-3">
+            Gratis · ohne Anmeldung ausprobieren
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Karten-Designer im Tinder-Stil
+          </h2>
+          <p className="text-sm sm:text-base text-gray-600 mt-2 max-w-xl mx-auto">
+            Wischt euch durch unsere Vorlagen für <strong>Einladung</strong>, <strong>Tischkärtchen</strong>,
+            <strong> Menükarte</strong> und <strong>Dankeskarte</strong> — findet euren Stil in unter zwei Minuten.
+            PDF und E-Mail-Versand inklusive.
+          </p>
+          <Link href="/karten">
+            <button className="mt-5 inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition">
+              Jetzt Karten gestalten →
+            </button>
+          </Link>
+        </div>
+      </section>
+
       <footer className="border-t border-gray-100 py-5 text-center text-xs text-gray-400">
         <div className="space-x-3">
           <span>NIWE Weddings · NIWE Events · info@niwe-events.com</span>
@@ -174,6 +196,10 @@ export default function Landing({ onLogin }: { onLogin: (customer: CustomerInfo)
           <Link href="/agb">
             <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">AGB &amp; Widerruf</span>
           </Link>
+          <button onClick={() => import("@/hooks/useCookieConsent").then(m => m.openCookieSettings())}
+            className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">
+            Cookie-Einstellungen
+          </button>
         </div>
         <div className="mt-2 flex items-center justify-center gap-1.5 text-gray-500">
           <Lock className="w-3 h-3 text-emerald-600" />

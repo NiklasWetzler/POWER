@@ -9,3 +9,4 @@ export * from "./questionnaire";
 export * from "./chat";
 export * from "./appointments";
 export * from "./adminUsers";
+export * from "./designs";

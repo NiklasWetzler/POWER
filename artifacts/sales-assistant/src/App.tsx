@@ -2,7 +2,9 @@ import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { CookieConsent } from "@/components/CookieConsent";
 import NotFound from "@/pages/not-found";
 
 // Auth contexts
@@ -30,6 +32,10 @@ import DJVertragPortal from "@/pages/portal/DJVertragPortal";
 import Eingang from "@/pages/portal/Eingang";
 import Kontakt from "@/pages/portal/Kontakt";
 import NiceToKnowPage from "@/pages/portal/NiceToKnow";
+import MeineKarten from "@/pages/portal/MeineKarten";
+
+// Public tool pages
+import Karten from "@/pages/Karten";
 
 // Admin pages
 import FragebogenAdmin from "@/pages/FragebogenAdmin";
@@ -117,6 +123,9 @@ function Router() {
       {/* Legacy public questionnaire link (send-link emails go here) */}
       <Route path="/fragebogen-oeffentlich">{() => <Fragebogen />}</Route>
 
+      {/* Free public tools */}
+      <Route path="/karten">{() => <Karten />}</Route>
+
       {/* Customer portal */}
       <Route path="/portal/formulare/musikfragebogen">
         {() => <CustomerRoute><MusikFragebogenPortal /></CustomerRoute>}
@@ -138,6 +147,9 @@ function Router() {
       </Route>
       <Route path="/portal/nice-to-know">
         {() => <CustomerRoute><NiceToKnowPage /></CustomerRoute>}
+      </Route>
+      <Route path="/portal/meine-karten">
+        {() => <CustomerRoute><MeineKarten /></CustomerRoute>}
       </Route>
       <Route path="/portal">
         {() => <CustomerRoute><PortalHome /></CustomerRoute>}
@@ -194,6 +206,8 @@ function AppInner() {
               <Router />
             </WouterRouter>
             <Toaster />
+            <SonnerToaster />
+            <CookieConsent />
           </TooltipProvider>
         </QueryClientProvider>
       </CustomerAuthContext.Provider>

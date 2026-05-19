@@ -19,6 +19,7 @@ import adminStaffRouter from "./adminStaff";
 import adminActivityRouter from "./adminActivityRoute";
 import adminInviteRouter from "./adminInvite";
 import adminPreviewRouter from "./adminPreview";
+import designsRouter from "./designs";
 import { requireAdmin } from "../lib/authMiddleware";
 
 const router: IRouter = Router();
@@ -32,6 +33,7 @@ router.use(adminInviteRouter); // /admin-invite/:token (public set-password)
 
 // ── Customer portal (customer session required) ────────────
 router.use(customerPortalRouter);
+router.use(designsRouter);
 
 // ── Mixed (per-route customer + admin auth via middleware) ─
 router.use(customerMessagesRouter);

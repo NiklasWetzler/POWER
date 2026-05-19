@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Home, FileText, Inbox, Mail, LogOut, MessageCircle, Eye, ArrowLeft } from "lucide-react";
+import { Home, FileText, Inbox, Mail, LogOut, MessageCircle, Eye, ArrowLeft, Heart } from "lucide-react";
+import { openCookieSettings } from "@/hooks/useCookieConsent";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
@@ -13,6 +14,7 @@ const navItems: { href: string; label: string; icon: React.ComponentType<{ class
   { href: "/portal/kontakt", label: "Kontakt", icon: MessageCircle, key: "kontakt" },
   { href: "/portal/formulare", label: "Formulare", icon: FileText },
   { href: "/portal/eingereicht", label: "Übermittelte", icon: Inbox },
+  { href: "/portal/meine-karten", label: "Meine Karten", icon: Heart },
 ];
 
 export function CustomerShell({ children, onLogout }: { children: React.ReactNode; onLogout: () => void }) {
@@ -156,6 +158,10 @@ export function CustomerShell({ children, onLogout }: { children: React.ReactNod
         <Link href="/agb">
           <span className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">AGB &amp; Widerruf</span>
         </Link>
+        <button onClick={openCookieSettings}
+          className="underline underline-offset-2 hover:text-gray-600 cursor-pointer transition-colors">
+          Cookie-Einstellungen
+        </button>
       </footer>
     </div>
   );
