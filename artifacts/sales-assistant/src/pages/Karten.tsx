@@ -124,10 +124,6 @@ export default function Karten() {
   const handleField = (k: string, v: string) => setData((d) => ({ ...d, [k]: v }));
 
   const proceedToData = () => {
-    if (!loggedIn) {
-      setShowLoginGate(true);
-      return;
-    }
     setStep("data");
   };
 
@@ -163,6 +159,10 @@ export default function Karten() {
 
   const submitDesign = async () => {
     if (!selectedTemplate) return;
+    if (!loggedIn) {
+      setShowLoginGate(true);
+      return;
+    }
     setSubmitting(true);
     try {
       const payload: Record<string, unknown> = {

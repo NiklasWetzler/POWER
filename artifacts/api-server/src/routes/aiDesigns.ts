@@ -1,16 +1,20 @@
 import { Router, type IRouter } from "express";
-import rateLimit from "express-rate-limit";
-import { requireCustomer } from "../lib/authMiddleware";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
 const router: IRouter = Router();
 
-// Hard cap per customer: max 12 requests/hour (×3 images = ≤36 images/hour)
+// Hard cap: max 12 requests/hour per customer (if logged in) or per IP (anon).
+// ×3 images = ≤36 images/hour per identity. Public access; no login required.
 const aiLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 12,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => `c${req.session?.customerId ?? "anon"}`,
+  keyGenerator: (req) => {
+    const cid = req.session?.customerId;
+    if (cid) return `c${cid}`;
+    return `ip${ipKeyGenerator(req.ip ?? "")}`;
+  },
   message: { error: "Zu viele KI-Anfragen. Bitte in einer Stunde erneut versuchen." },
 });
 
@@ -93,7 +97,7 @@ async function pollinationsImage(prompt: string, seed: number): Promise<string> 
   return `data:${safeCt};base64,${buf.toString("base64")}`;
 }
 
-router.post("/ai/card-background", requireCustomer, aiLimiter, async (req, res): Promise<void> => {
+router.post("/ai/card-background", aiLimiter, async (req, res): Promise<void> => {
   const body = req.body as AiBgBody;
   const styleKey = typeof body.style === "string" ? body.style : undefined;
   const customPrompt = typeof body.prompt === "string" ? body.prompt : undefined;
