@@ -227,8 +227,9 @@ export default function FragebogenAdmin() {
   const [brautpaarName, setBrautpaarName] = useState("");
   const [email, setEmail] = useState("");
   const [expandedId, setExpandedId] = useState<number|null>(null);
+  const [tab, setTab] = useState<"dj-vertrag" | "musikfragebogen">("dj-vertrag");
 
-  const { data: submissions = [], isLoading } = useQuery<Submission[]>({
+  const { data: allSubmissions = [], isLoading } = useQuery<Submission[]>({
     queryKey: ["questionnaire-submissions"],
     queryFn: async () => {
       const res = await fetch("/api/questionnaire/submissions", { credentials: "include" });
@@ -279,6 +280,11 @@ export default function FragebogenAdmin() {
     onError: (err) => { toast({ title: "Fehler", description: err instanceof Error ? err.message : "Unbekannt.", variant: "destructive" }); },
   });
 
+  const counts = {
+    djVertrag: allSubmissions.filter((s) => s.formType === "dj-vertrag").length,
+    musik: allSubmissions.filter((s) => s.formType === "musikfragebogen").length,
+  };
+  const submissions = allSubmissions.filter((s) => s.formType === tab);
   const stats = {
     total: submissions.length,
     open: submissions.filter((s)=>s.status==="open").length,
@@ -294,6 +300,33 @@ export default function FragebogenAdmin() {
           <h1 className="text-2xl font-bold tracking-tight">Online Fragebogen</h1>
           <p className="text-sm text-muted-foreground">Eingehende Fragebögen verwalten &amp; bestätigen</p>
         </div>
+      </div>
+
+      {/* Type tabs */}
+      <div className="flex gap-1 border-b border-border">
+        {([
+          { id: "dj-vertrag" as const, label: "Booking-Verträge", icon: <FileSignature className="w-4 h-4" />, count: counts.djVertrag },
+          { id: "musikfragebogen" as const, label: "Musikfragebögen", icon: <Music className="w-4 h-4" />, count: counts.musik },
+        ]).map((t) => {
+          const active = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => { setTab(t.id); setExpandedId(null); }}
+              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors inline-flex items-center gap-1.5 ${
+                active ? "border-amber-500 text-amber-700" : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.icon}
+              {t.label}
+              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                active ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
+              }`}>
+                {t.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Send link */}
@@ -339,13 +372,19 @@ export default function FragebogenAdmin() {
       {/* Table */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Eingegangene Fragebögen</CardTitle>
+          <CardTitle className="text-base">
+            {tab === "dj-vertrag" ? "Eingegangene Booking-Verträge" : "Eingegangene Musikfragebögen"}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-8 text-center text-muted-foreground text-sm">Wird geladen…</div>
           ) : submissions.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground text-sm">Noch keine Fragebögen eingegangen.</div>
+            <div className="p-8 text-center text-muted-foreground text-sm">
+              {tab === "dj-vertrag"
+                ? "Noch keine unterzeichneten Booking-Verträge eingegangen."
+                : "Noch keine Musikfragebögen eingegangen."}
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

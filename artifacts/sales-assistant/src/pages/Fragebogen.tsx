@@ -384,17 +384,24 @@ export function FragebogenForm({ isAdminView = false }: { isAdminView?: boolean 
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="space-y-3 pt-1">
+              <p className="text-sm font-medium text-foreground">Besonderheiten zur Location</p>
               {[
-                { id: "locationBes", label: "Besonderheiten zur Location" },
-                { id: "strom", label: "Strom" },
-                { id: "aufbauInfo", label: "Aufbau" },
-                { id: "musikanschluss", label: "Musikanschlüsse" },
-                { id: "buehne", label: "Bühne" },
-              ].map(({ id, label }) => (
-                <div key={id} className="flex items-center gap-3">
-                  <span className="w-44 text-sm text-muted-foreground shrink-0">{label}:</span>
-                  <Input {...register(id)} data-testid={`input-${id.toLowerCase()}`} />
+                { id: "locationBes", label: "Allgemeine Besonderheiten", placeholder: "z. B. Räumliche Aufteilung, Ein-/Ausgänge, …" },
+                { id: "strom", label: "Strom", placeholder: "Wo ist die nächste Steckdose? Eigener Stromkreis? …" },
+                { id: "aufbauInfo", label: "Aufbau", placeholder: "Ab wann kann aufgebaut werden, Treppen, Aufzug, Wege?" },
+                { id: "musikanschluss", label: "Musikanschlüsse", placeholder: "Bestehende Beschallung, Anschlussmöglichkeiten?" },
+                { id: "buehne", label: "Bühne", placeholder: "Höhe, Größe, Stromanschluss auf der Bühne?" },
+              ].map(({ id, label, placeholder }) => (
+                <div key={id} className="space-y-1">
+                  <Label htmlFor={id} className="text-sm">{label}</Label>
+                  <Textarea
+                    id={id}
+                    rows={2}
+                    placeholder={placeholder}
+                    {...register(id)}
+                    data-testid={`input-${id.toLowerCase()}`}
+                  />
                 </div>
               ))}
             </div>

@@ -3,6 +3,7 @@ import nodemailer from "nodemailer";
 import { eq } from "drizzle-orm";
 import { db, questionnaireSubmissionsTable } from "@workspace/db";
 import { buildEmailHtml, buildEmailText } from "../lib/emailTemplate";
+import { generateQuestionnairePdf } from "../lib/questionnairePdf";
 
 const router: IRouter = Router();
 
@@ -43,14 +44,31 @@ router.post("/questionnaire/submit", async (req, res): Promise<void> => {
 
   const customerId = req.session.customerId ?? null;
 
+  // Generate filled PDF (best-effort — failure does not block submission)
+  let pdfBase64: string | null = null;
+  let pdfBuffer: Buffer | null = null;
+  try {
+    pdfBuffer = await generateQuestionnairePdf({
+      brautpaar,
+      datum: datum ?? null,
+      location: location ?? null,
+      formData: safeFormData,
+    });
+    pdfBase64 = pdfBuffer.toString("base64");
+  } catch (err) {
+    req.log.error({ err }, "Failed to generate questionnaire PDF");
+  }
+
   const [submission] = await db
     .insert(questionnaireSubmissionsTable)
     .values({
       customerId,
+      formType: "musikfragebogen",
       brautpaar,
       datum: datum ?? null,
       location: location ?? null,
       formData: JSON.stringify(safeFormData),
+      generatedPdfBase64: pdfBase64,
       status: "open",
       emailSent: "false",
       adminConfirmed: false,
@@ -69,11 +87,19 @@ router.post("/questionnaire/submit", async (req, res): Promise<void> => {
     try {
       const html = buildEmailHtml(brautpaar, datum, location, safeFormData);
       const text = buildEmailText(brautpaar, datum, location, safeFormData);
+      const safeName = brautpaar.replace(/[^a-z0-9]/gi, "_");
       await transport.sendMail({
         from: `"NIWE Weddings Fragebogen" <${fromEmail()}>`,
         to: "info@niwe-events.com",
         subject: `Neuer Musikfragebogen – ${brautpaar}`,
         text, html,
+        attachments: pdfBuffer
+          ? [{
+              filename: `Musikfragebogen-${safeName}.pdf`,
+              content: pdfBuffer,
+              contentType: "application/pdf",
+            }]
+          : undefined,
       });
       emailSent = true;
       req.log.info({ submissionId: submission.id }, "Questionnaire email sent");

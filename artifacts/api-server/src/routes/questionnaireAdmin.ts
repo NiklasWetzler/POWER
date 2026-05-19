@@ -52,7 +52,10 @@ router.get("/questionnaire/submissions/:id/pdf", async (req, res): Promise<void>
 
   const buf = Buffer.from(sub.generatedPdfBase64, "base64");
   const safeName = (sub.brautpaar ?? "vertrag").replace(/[^a-z0-9]/gi, "_");
-  const prefix = sub.formType === "dj-vertrag" ? "DJ-Vertrag" : "Formular";
+  const prefix =
+    sub.formType === "dj-vertrag" ? "DJ-Vertrag"
+    : sub.formType === "musikfragebogen" ? "Musikfragebogen"
+    : "Formular";
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
