@@ -6,3 +6,9 @@ id = "uOzveBDFSfOe_em4a5Mhb"
 uri = "file://attached_assets/generated/dj_vertrag_test.pdf"
 type = "pdf"
 title = "DJ-Vertrag (gefixt, 3 Seiten)"
+
+[[outputs]]
+id = "eZXn4nM0oXuU4Cx2D9A_n"
+uri = "file://exports/niwe-weddings-source.tar.gz"
+type = "unspecified"
+title = "NIWE Weddings — Source (tar.gz, 964 KB)"
