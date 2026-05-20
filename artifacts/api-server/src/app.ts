@@ -1,3 +1,5 @@
+import { existsSync, statSync } from "node:fs";
+import path from "node:path";
 import express, { type Express, type Request } from "express";
 import cors from "cors";
 import session from "express-session";
@@ -177,6 +179,48 @@ app.use("/api/customer/chat", chatLimiter);
 app.use("/api/customer/appointments", chatLimiter);
 
 app.use("/api", router);
+
+// ── Static frontend (production single-service deployments, e.g. Coolify) ──
+// In dev, Vite serves the frontend on its own port. In production we ship one
+// container that serves both API and the built SPA from the same origin.
+// FRONTEND_DIST can override the default location.
+if (isProd) {
+  const candidates = [
+    process.env.FRONTEND_DIST,
+    path.resolve(__dirname, "../../sales-assistant/dist/public"),
+    path.resolve(process.cwd(), "artifacts/sales-assistant/dist/public"),
+  ].filter((p): p is string => Boolean(p));
+
+  const frontendDir = candidates.find(
+    (p) => existsSync(p) && statSync(p).isDirectory(),
+  );
+
+  if (frontendDir) {
+    logger.info({ frontendDir }, "Serving static frontend");
+    // Hashed assets get long cache; index.html stays fresh.
+    app.use(
+      express.static(frontendDir, {
+        index: false,
+        maxAge: "1y",
+        immutable: true,
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith("index.html")) {
+            res.setHeader("Cache-Control", "no-cache");
+          }
+        },
+      }),
+    );
+    // SPA fallback: everything that isn't /api/* serves index.html.
+    app.get(/^\/(?!api(\/|$)).*/, (_req, res) => {
+      res.sendFile(path.join(frontendDir, "index.html"));
+    });
+  } else {
+    logger.warn(
+      { searched: candidates },
+      "No frontend dist directory found — API will run without serving the SPA.",
+    );
+  }
+}
 
 // Bootstrap the super-admin from env. In production we refuse to keep serving
 // traffic if the bootstrap fails, otherwise the admin area could end up with no

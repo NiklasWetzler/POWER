@@ -1,0 +1,18 @@
+providers = ["node"]
+
+[variables]
+NODE_VERSION = "24"
+NPM_CONFIG_PRODUCTION = "false"
+NODE_ENV = "production"
+
+[phases.setup]
+nixPkgs = ["nodejs_24", "pnpm-10_x"]
+
+[phases.install]
+cmds = ["pnpm install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["pnpm run build:deploy"]
+
+[start]
+cmd = "pnpm run start"
