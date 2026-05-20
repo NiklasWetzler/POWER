@@ -12,3 +12,9 @@ id = "eZXn4nM0oXuU4Cx2D9A_n"
 uri = "file://exports/niwe-weddings-source.tar.gz"
 type = "unspecified"
 title = "NIWE Weddings — Source für GitHub-Upload (965 KB)"
+
+[[outputs]]
+id = "cOu5u5Zh0zyBOY3R7WVuk"
+uri = "file://exports/niwe-weddings-source.zip"
+type = "unspecified"
+title = "NIWE Weddings — Source (ZIP, 1.1 MB)"
