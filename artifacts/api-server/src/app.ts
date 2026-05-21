@@ -56,12 +56,14 @@ app.use(
           directives: {
             "default-src": ["'self'"],
             "img-src": ["'self'", "data:", "blob:", "https:"],
-            "style-src": ["'self'", "'unsafe-inline'"],
+            "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
             "script-src": ["'self'"],
             "connect-src": ["'self'"],
             "frame-ancestors": ["'self'"],
             "object-src": ["'none'"],
             "base-uri": ["'self'"],
+            "upgrade-insecure-requests": null,
           },
         }
       : false,
